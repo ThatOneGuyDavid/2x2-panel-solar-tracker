@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Solar tracker — post and array preview</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#e8edf0;color:#19262d;font:14px system-ui,sans-serif}
+main{display:flex;height:100vh;height:100dvh}
+aside{width:320px;flex:none;padding:18px;overflow:auto;background:#fff;border-right:1px solid #cbd5dc}
+h1{font-size:20px;line-height:1.2;margin:0 0 4px}
+h2{font-size:14px;margin:20px 0 10px;padding-top:14px;border-top:1px solid #dce3e7}
+.subtle{color:#53616b;font-size:12px;line-height:1.4;margin:0 0 12px}
+nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:0 0 14px}
+button{font:inherit;padding:8px;border:1px solid #b7c4cb;border-radius:6px;background:#f7f9fa;cursor:pointer}
+button:hover{background:#e7eef2}button[aria-pressed=true]{background:#d5e7f1;border-color:#6493ac}
+label{display:block;margin:10px 0}input[type=range]{width:100%;margin:4px 0 0}output{font-weight:700}
+canvas{flex:1;width:0;height:100%;display:block;touch-action:none}
+.gesture{font-size:12px;color:#53616b;line-height:1.45;margin:12px 0 0}
+.view-tree,.view-tree ul,.bom-tree,.bom-tree ul{list-style:none;padding:0;margin:0}
+.view-tree>li,.bom-tree>li{margin:0 0 7px}
+.tree-group{border:1px solid #dce3e7;border-radius:7px;overflow:hidden}
+.tree-title{padding:9px 12px;background:#f7f9fa;font-weight:600;border-bottom:1px solid #e4e9ed}
+.view-tree ul,.bom-tree ul{padding:5px 12px 7px 22px}
+.view-tree ul li,.bom-tree ul li{display:flex;align-items:baseline;justify-content:space-between;gap:9px;padding:5px 0;border-bottom:1px solid #eef1f3;font-size:13px}
+.view-tree ul li:last-child,.bom-tree ul li:last-child{border-bottom:0}
+.view-tree ul label{margin:0;width:100%;cursor:pointer}
+.view-tree ul input[type=checkbox]{appearance:none;width:15px;height:15px;margin:0 8px 0 0;border:1.5px solid #6c7f8a;border-radius:50%;vertical-align:-3px;cursor:pointer}
+.view-tree ul input[type=checkbox]:checked{border-color:#356b8a;background:#356b8a;box-shadow:inset 0 0 0 3px #fff}
+.view-tree ul input[type=checkbox]:focus-visible{outline:2px solid #356b8a;outline-offset:2px}
+.bom-tree ul li::before{content:"";width:8px;height:8px;border:1px solid #8c9aa2;border-radius:50%;flex:none;align-self:center}
+.bom-tree ul li span:first-child{flex:1}
+.qty{flex:none;color:#53616b;font-variant-numeric:tabular-nums}
+.swatch{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:7px;vertical-align:-1px}
+@media(max-width:700px){main{display:block}aside{width:100%;height:45vh;padding:13px}canvas{width:100%;height:55vh}}
+</style>
+<main><aside>
+<h1>Solar tracker</h1>
+<p class="subtle">Four-panel assembly · geometry preview</p>
+<h2>Controls</h2>
+<nav><button id="whole">Whole view</button><button id="close">Hub close-up</button><button id="bracket">Bracket detail</button><button id="tilt-drive-view">Tilt drive</button><button id="mast-view">Mast view</button><button id="side">Side</button><button id="top">Top</button><button id="fit">Fit</button><button id="winter" aria-pressed="true">Winter 71°</button><button id="wind" aria-pressed="false">Wind 0°</button><button id="pan-mode" aria-pressed="false">Pan view mode</button></nav>
+<label>Panel tilt: <output id="angle-value">71°</output><input id="angle" type="range" min="0" max="71" value="71"></label>
+<label>Array pan: <output id="azimuth-value">0°</output><input id="azimuth" type="range" min="-90" max="90" value="0"></label>
+<label>Zoom: <output id="zoom-value">100%</output><input id="zoom" type="range" min="25" max="500" value="100"></label>
+<label><input id="reverse-vertical-drag" type="checkbox" checked> Reverse vertical orbit drag</label>
+<p class="gesture">Drag to orbit · Shift/right-drag or Pan mode to move · Wheel to zoom · Double-click to recenter</p>
+<h2>View tree</h2>
+<ul class="view-tree">
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#a56c40"></span>Post and pan</div><ul>
+<li><label><input id="hub" type="checkbox" checked>Hub</label></li>
+<li><label><input id="post-sprocket" type="checkbox" checked>Fixed pan sprocket</label></li>
+</ul></div></li>
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#8099ad"></span>Tilt bracket</div><ul>
+<li><label><input id="gussets" type="checkbox" checked>Gusset plates</label></li>
+<li><label><input id="mast-plates" type="checkbox" checked>Mast bridge plates</label></li>
+<li><label><input id="mast" type="checkbox" checked>Wind mast</label></li>
+</ul></div></li>
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#646f78"></span>Tilt drive</div><ul>
+<li><label><input id="motor-plates" type="checkbox" checked>Motor mount plates</label></li>
+<li><label><input id="tilt-sprocket" type="checkbox" checked>Tilt-shaft sprocket</label></li>
+<li><label><input id="tilt-drive" type="checkbox" checked>Tilt motor and chain</label></li>
+</ul></div></li>
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#243341"></span>Panel frame</div><ul>
+<li><label><input id="panels" type="checkbox" checked>Panel faces</label></li>
+</ul></div></li>
+</ul>
+<h2>Bill of materials</h2>
+<p class="subtle">Modeled quantities. Unselected parts and sizes are provisional.</p>
+<ul class="bom-tree">
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#a56c40"></span>Post and pan</div><ul>
+<li><span>6×6 post</span><span class="qty">1</span></li>
+<li><span>Trailer spindle and hub kit</span><span class="qty">1</span></li>
+<li><span>Hub studs and nuts</span><span class="qty">5</span></li>
+<li><span>Pan motor mount plate</span><span class="qty">1</span></li>
+<li><span>Fixed 72-tooth sprocket</span><span class="qty">1</span></li>
+</ul></div></li>
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#8099ad"></span>Tilt bracket</div><ul>
+<li><span>Bent hub and bearing bracket</span><span class="qty">1</span></li>
+<li><span>Bolt-on gusset plates</span><span class="qty">2</span></li>
+<li><span>Mast bridge plates</span><span class="qty">2</span></li>
+<li><span>Wind mast proxy</span><span class="qty">1</span></li>
+<li><span>1-in support bearings</span><span class="qty">2</span></li>
+</ul></div></li>
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#646f78"></span>Tilt drive</div><ul>
+<li><span>Tilt motor mount plate</span><span class="qty">1</span></li>
+<li><span>Right-angle gearmotor proxy</span><span class="qty">1</span></li>
+<li><span>1-in tilt shaft</span><span class="qty">1</span></li>
+<li><span>28-tooth shaft sprocket</span><span class="qty">1</span></li>
+<li><span>12-tooth motor sprocket</span><span class="qty">1</span></li>
+<li><span>Bicycle-chain loop proxy</span><span class="qty">1</span></li>
+</ul></div></li>
+<li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#243341"></span>Panel frame</div><ul>
+<li><span>45 × 68-in panels (owned)</span><span class="qty">4</span></li>
+<li><span>Vertical square tubes</span><span class="qty">4</span></li>
+<li><span>Horizontal square tubes</span><span class="qty">4</span></li>
+<li><span>Custom shaft clamps</span><span class="qty">2</span></li>
+<li><span>1-in spacer blocks</span><span class="qty">2</span></li>
+</ul></div></li>
+</ul>
+</aside><canvas id="view" aria-label="Interactive three-dimensional solar tracker assembly"></canvas></main>
+<script>
+'use strict';
+const canvas=document.getElementById('view');
+const gl=canvas.getContext('webgl',{antialias:true,depth:true});
+const ctx=gl?null:canvas.getContext('2d');
+let glProgram,glBuffer,positionLocation,colorLocation;
+if(gl){
+ function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(shader));return shader}
+ glProgram=gl.createProgram();
+ gl.attachShader(glProgram,compile(gl.VERTEX_SHADER,'attribute vec3 aPosition; attribute vec3 aColor; varying vec3 vColor; void main(){gl_Position=vec4(aPosition,1.0);vColor=aColor;}'));
+ gl.attachShader(glProgram,compile(gl.FRAGMENT_SHADER,'precision mediump float; varying vec3 vColor; void main(){gl_FragColor=vec4(vColor,1.0);}'));
+ gl.linkProgram(glProgram);if(!gl.getProgramParameter(glProgram,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(glProgram));
+ gl.useProgram(glProgram);glBuffer=gl.createBuffer();positionLocation=gl.getAttribLocation(glProgram,'aPosition');colorLocation=gl.getAttribLocation(glProgram,'aColor');
+ gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearColor(.91,.93,.94,1);
+}
+const C={post:140,postH:1524,hubFaceZ:65,hubFaceT:12,hubR:80,studR:63.5,hubStudPhaseDeg:18,hubOverlap:25.4,deckZ:77,deckT:5/16*25.4,armStart:75,armHalfW:75,riserX:202,mainR:13,padInner:130,padZ:225+7*25.4,bearingX:160,panelX:1727.2,panelY:1143,gapX:120,gapY:60,tube:25.4,tubeInset:300,endOverhang:30,horizontalInset:100,horizontalOverhang:30,upperCenterRailY:200,lowerCenterRailY:-240,bearingWidth:36.11875,bearingLength:139.7,bearingHeight:71.4375,bearingCenterH:36.5125,mountHoleSpan:101.6,shaftEnd:20,spacerT:25.4,renderGap:1,gussetH:7*25.4,gussetT:1/4*25.4,gussetR:10,gussetTopGap:5,gussetDrop:2*25.4,returnEndY:10,boltY:35,mastHole:35,mastY:40,mastOD:30,mastWall:1.5,mastTop:1800,mastPlateT:1/4*25.4,upperMastHalfX:185,lowerMastHalfX:75,lowerMastR:10,panPlateT:1/4*25.4,panPlateEndY:-225,panPlateHalfX:70,panMotorY:-175,tiltPlateT:1/4*25.4,chainPitch:12.7,sprocketTeeth:72,sprocketInnerR:40,sprocketBottom:8,sprocketT:2.2,tiltSprocketTeeth:28,tiltSprocketX:230,tiltSprocketT:2.2,tiltSprocketCollarR:20,tiltSprocketCollarW:18,spindleBoltOffset:40};
+C.mountCenterH=C.bearingCenterH;C.mountOverallH=C.bearingHeight;C.mountLength=C.bearingLength;C.mountWidth=C.bearingWidth;
+C.sprocketPitchR=C.chainPitch/(2*Math.sin(Math.PI/C.sprocketTeeth));C.sprocketRootR=C.sprocketPitchR-3;C.sprocketTipR=C.sprocketPitchR+4;
+C.tiltSprocketPitchR=C.chainPitch/(2*Math.sin(Math.PI/C.tiltSprocketTeeth));C.tiltSprocketRootR=C.tiltSprocketPitchR-3;C.tiltSprocketTipR=C.tiltSprocketPitchR+4;
+C.tiltMotorY=-130;C.motorPinionTeeth=12;C.motorPinionPitchR=C.chainPitch/(2*Math.sin(Math.PI/C.motorPinionTeeth));C.motorPinionRootR=C.motorPinionPitchR-2;C.motorPinionTipR=C.motorPinionPitchR+2.5;C.motorShaftR=7.5;C.motorGearboxX0=128;C.motorGearboxX1=188;C.motorFlangeX=C.riserX+C.deckT/2;C.chainWidth=6.4;C.chainRadialHalf=2.2;
+C.upperMastTop=C.padZ+C.mastPlateT;C.bearingMountZ=C.upperMastTop;C.shaftZ=C.bearingMountZ+C.bearingCenterH;
+C.gussetTop=C.padZ-C.deckT-C.gussetTopGap-C.gussetDrop;C.gussetBottom=C.gussetTop-C.gussetH;
+C.tiltMotorZ=(C.gussetTop+C.gussetBottom)/2;
+C.lowerMastBottom=C.gussetBottom;C.lowerMastMid=C.lowerMastBottom+C.mastPlateT/2;C.lowerMastRC=C.lowerMastR+C.mastPlateT/2;
+C.lowerMastTabY=C.armHalfW-C.mastPlateT/2;C.lowerMastFlatY=C.lowerMastTabY-C.lowerMastRC;
+C.lowerMastTongueHalfX=30;C.lowerMastTongueEndY=71.35;C.lowerMastBoltX=52.5;
+C.lowerMastBendTop=C.lowerMastMid+C.lowerMastRC;C.lowerMastTabTop=C.gussetBottom+75;C.lowerMastBoltZ=C.gussetBottom+45;
+C.mastBottom=C.lowerMastBottom-30;
+C.riserInner=C.riserX-C.deckT/2;C.riserOuter=C.riserX+C.deckT/2;C.gussetInner=C.riserInner-C.gussetT;
+C.clampX=C.gapX/2+C.tubeInset;
+C.shaftHalf=C.clampX+C.mountWidth/2+C.shaftEnd;
+let yaw=2.55,pitch=-.65,zoom=1,angle=71,azimuth=0,panScope=false,showPanels=true,showHub=true,showGussets=true,showMastPlates=true,showMast=true,showMotorPlates=true,showPostSprocket=true,showTiltSprocket=true,showTiltDrive=true,detail=false,detailZ=150,detailSpan=850,pan=[0,0],panMode=false,invertOrbitPitch=true,drag=null;
+const faces=[];
+const a36=[.50,.60,.68];
+function face(a,b,c,color){
+ const R=p=>{let t=azimuth*Math.PI/180,s=Math.sin(t),q=Math.cos(t);return[q*p[0]-s*p[1],s*p[0]+q*p[1],p[2]]};
+ faces.push({p:panScope?[R(a),R(b),R(c)]:[a,b,c],color});
+}
+function quad(a,b,c,d,color){face(a,b,c,color);face(a,c,d,color)}
+function box(x0,x1,y0,y1,z0,z1,color,transform){
+ const T=transform||((p)=>p),a=T([x0,y0,z0]),b=T([x1,y0,z0]),c=T([x1,y1,z0]),d=T([x0,y1,z0]);
+ const e=T([x0,y0,z1]),f=T([x1,y0,z1]),g=T([x1,y1,z1]),h=T([x0,y1,z1]);
+ quad(a,d,c,b,color);quad(e,f,g,h,color);quad(a,b,f,e,color);quad(b,c,g,f,color);quad(c,d,h,g,color);quad(d,a,e,h,color);
+}
+function prismX(outline,x0,x1,color){
+ const a=outline.map(([y,z])=>[x0,y,z]),b=outline.map(([y,z])=>[x1,y,z]);
+ for(let i=1;i<outline.length-1;i++){face(a[0],a[i+1],a[i],color);face(b[0],b[i],b[i+1],color)}
+ for(let i=0;i<outline.length;i++){let j=(i+1)%outline.length;quad(a[i],a[j],b[j],b[i],color)}
+}
+function prismZ(outline,z0,z1,color){
+ const a=outline.map(([x,y])=>[x,y,z0]),b=outline.map(([x,y])=>[x,y,z1]);
+ for(let i=1;i<outline.length-1;i++){face(a[0],a[i],a[i+1],color);face(b[0],b[i+1],b[i],color)}
+ for(let i=0;i<outline.length;i++){let j=(i+1)%outline.length;quad(a[i],a[j],b[j],b[i],color)}
+}
+function roundCornerX(y,z,r,a0,a1,x0,x1,color){let p=[[y,z]];for(let i=0;i<=12;i++){let a=(a0+(a1-a0)*i/12)*Math.PI/180;p.push([y+r*Math.cos(a),z+r*Math.sin(a)])}prismX(p,x0,x1,color)}
+function roundCornerZ(x,y,r,a0,a1,z0,z1,color){let p=[[x,y]];for(let i=0;i<=12;i++){let a=(a0+(a1-a0)*i/12)*Math.PI/180;p.push([x+r*Math.cos(a),y+r*Math.sin(a)])}prismZ(p,z0,z1,color)}
+// Small triangles keep the depth ordering local where long rails cross panels.
+function tiledBox(x0,x1,y0,y1,z0,z1,color,T,maxSpan=180){
+ const nx=Math.max(1,Math.ceil((x1-x0)/maxSpan)),ny=Math.max(1,Math.ceil((y1-y0)/maxSpan)),nz=Math.max(1,Math.ceil((z1-z0)/maxSpan));
+ const P=(x,y,z)=>T([x,y,z]),X=i=>x0+(x1-x0)*i/nx,Y=j=>y0+(y1-y0)*j/ny,Z=k=>z0+(z1-z0)*k/nz;
+ for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){
+  const a=X(i),b=X(i+1),c=Y(j),d=Y(j+1);
+  quad(P(a,c,z0),P(a,d,z0),P(b,d,z0),P(b,c,z0),color);
+  quad(P(a,c,z1),P(b,c,z1),P(b,d,z1),P(a,d,z1),color);
+ }
+ for(let i=0;i<nx;i++)for(let k=0;k<nz;k++){
+  const a=X(i),b=X(i+1),c=Z(k),d=Z(k+1);
+  quad(P(a,y0,c),P(b,y0,c),P(b,y0,d),P(a,y0,d),color);
+  quad(P(b,y1,c),P(a,y1,c),P(a,y1,d),P(b,y1,d),color);
+ }
+ for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){
+  const a=Y(j),b=Y(j+1),c=Z(k),d=Z(k+1);
+  quad(P(x1,a,c),P(x1,b,c),P(x1,b,d),P(x1,a,d),color);
+  quad(P(x0,b,c),P(x0,a,c),P(x0,a,d),P(x0,b,d),color);
+ }
+}
+function cylinderZ(r,z0,z1,color,cx=0,cy=0,n=24){for(let i=0;i<n;i++){const a=2*Math.PI*i/n,b=2*Math.PI*(i+1)/n;
+ const p=[cx+r*Math.cos(a),cy+r*Math.sin(a),z0],q=[cx+r*Math.cos(b),cy+r*Math.sin(b),z0],s=[cx+r*Math.cos(a),cy+r*Math.sin(a),z1],t=[cx+r*Math.cos(b),cy+r*Math.sin(b),z1];quad(p,q,t,s,color);face([cx,cy,z1],s,t,color)}}
+function cylinderX(r,x0,x1,y,z,color,n=24){for(let i=0;i<n;i++){const a=2*Math.PI*i/n,b=2*Math.PI*(i+1)/n;
+ const p=[x0,y+r*Math.cos(a),z+r*Math.sin(a)],q=[x0,y+r*Math.cos(b),z+r*Math.sin(b)],s=[x1,y+r*Math.cos(a),z+r*Math.sin(a)],t=[x1,y+r*Math.cos(b),z+r*Math.sin(b)];quad(p,q,t,s,color);face([x0,y,z],q,p,color);face([x1,y,z],s,t,color)}}
+function cylinderY(r,y0,y1,x,z,color,n=24){for(let i=0;i<n;i++){const a=2*Math.PI*i/n,b=2*Math.PI*(i+1)/n;
+ const p=[x+r*Math.cos(a),y0,z+r*Math.sin(a)],q=[x+r*Math.cos(b),y0,z+r*Math.sin(b)],s=[x+r*Math.cos(a),y1,z+r*Math.sin(a)],t=[x+r*Math.cos(b),y1,z+r*Math.sin(b)];quad(p,q,t,s,color);face([x,y0,z],q,p,color);face([x,y1,z],s,t,color)}}
+function ringZ(ro,ri,z0,z1,color,n=32,cx=0,cy=0){for(let i=0;i<n;i++){let a=2*Math.PI*i/n,b=2*Math.PI*(i+1)/n;
+ let o0=[cx+ro*Math.cos(a),cy+ro*Math.sin(a),z0],o1=[cx+ro*Math.cos(b),cy+ro*Math.sin(b),z0],o2=[cx+ro*Math.cos(a),cy+ro*Math.sin(a),z1],o3=[cx+ro*Math.cos(b),cy+ro*Math.sin(b),z1];
+ let i0=[cx+ri*Math.cos(a),cy+ri*Math.sin(a),z0],i1=[cx+ri*Math.cos(b),cy+ri*Math.sin(b),z0],i2=[cx+ri*Math.cos(a),cy+ri*Math.sin(a),z1],i3=[cx+ri*Math.cos(b),cy+ri*Math.sin(b),z1];quad(o0,o1,o3,o2,color);quad(o2,o3,i3,i2,color);quad(o1,o0,i0,i1,color)}}
+function plateWithHole(hx,hy,z0,z1,r,cx,cy,color,n=48,T=(p)=>p){
+ const tau=2*Math.PI,cornerAngles=[[hx,hy],[-hx,hy],[-hx,-hy],[hx,-hy]].map(([x,y])=>(Math.atan2(y-cy,x-cx)+tau)%tau);
+ const angles=Array.from({length:n},(_,i)=>tau*i/n).concat(cornerAngles).sort((a,b)=>a-b).filter((a,i,all)=>i===0||a-all[i-1]>1e-8);
+ const outer=(a,z)=>{let c=Math.cos(a),s=Math.sin(a),tx=Math.abs(c)<1e-12?Infinity:(c>0?hx-cx:-hx-cx)/c,ty=Math.abs(s)<1e-12?Infinity:(s>0?hy-cy:-hy-cy)/s,k=Math.min(tx,ty);return[cx+k*c,cy+k*s,z]};
+ const inner=(a,z)=>[cx+r*Math.cos(a),cy+r*Math.sin(a),z];
+ for(let i=0;i<angles.length;i++){let a=angles[i],b=angles[(i+1)%angles.length],o0=T(outer(a,z0)),o1=T(outer(b,z0)),o2=T(outer(a,z1)),o3=T(outer(b,z1)),i0=T(inner(a,z0)),i1=T(inner(b,z0)),i2=T(inner(a,z1)),i3=T(inner(b,z1));
+  quad(o2,o3,i3,i2,color);quad(i0,i1,o1,o0,color);quad(o0,o1,o3,o2,color);quad(i1,i0,i2,i3,color);
+ }
+}
+function ringX(ro,ri,x0,x1,y,z,color,n=24,T=(p)=>p){for(let i=0;i<n;i++){let a=2*Math.PI*i/n,b=2*Math.PI*(i+1)/n;
+ const yz=(r,t,x)=>T([x,y+r*Math.cos(t),z+r*Math.sin(t)]);let o0=yz(ro,a,x0),o1=yz(ro,b,x0),o2=yz(ro,a,x1),o3=yz(ro,b,x1),i0=yz(ri,a,x0),i1=yz(ri,b,x0),i2=yz(ri,a,x1),i3=yz(ri,b,x1);
+ quad(o0,o1,o3,o2,color);quad(o2,o3,i3,i2,color);quad(o1,o0,i0,i1,color)}}
+function chainSegmentX(x0,x1,p,q,halfWidth,color){
+ const dy=q[0]-p[0],dz=q[1]-p[1],length=Math.hypot(dy,dz);if(length<1e-6)return;
+ const ny=-dz/length*halfWidth,nz=dy/length*halfWidth;
+ const a=[x0,p[0]+ny,p[1]+nz],b=[x0,q[0]+ny,q[1]+nz],c=[x0,q[0]-ny,q[1]-nz],d=[x0,p[0]-ny,p[1]-nz];
+ const e=[x1,p[0]+ny,p[1]+nz],f=[x1,q[0]+ny,q[1]+nz],g=[x1,q[0]-ny,q[1]-nz],h=[x1,p[0]-ny,p[1]-nz];
+ quad(a,b,c,d,color);quad(e,h,g,f,color);quad(a,e,f,b,color);quad(d,c,g,h,color);quad(a,d,h,e,color);quad(b,f,g,c,color);
+}
+function tiltChainLoop(){
+ const y0=C.tiltMotorY,z0=C.tiltMotorZ,y1=0,z1=C.shaftZ,r0=C.motorPinionPitchR,r1=C.tiltSprocketPitchR;
+ const dy=y1-y0,dz=z1-z0,L=Math.hypot(dy,dz),e=[dy/L,dz/L],k=(r1-r0)/L,h=Math.sqrt(1-k*k);
+ const plus=[-k*e[0]-h*e[1],-k*e[1]+h*e[0]],minus=[-k*e[0]+h*e[1],-k*e[1]-h*e[0]];
+ const point=(y,z,r,n)=>[y+r*n[0],z+r*n[1]];
+ function arc(y,z,r,start,end,want){
+  const a0=Math.atan2(start[1],start[0]),a1=Math.atan2(end[1],end[0]);let sweep=((a1-a0)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+  const mid=a0+sweep/2;if((Math.cos(mid)*e[0]+Math.sin(mid)*e[1])*want<0)sweep-=2*Math.PI;
+  const steps=Math.max(8,Math.ceil(Math.abs(sweep)/(Math.PI/24)));
+  return Array.from({length:steps+1},(_,i)=>point(y,z,r,[Math.cos(a0+sweep*i/steps),Math.sin(a0+sweep*i/steps)]));
+ }
+ const path=[point(y0,z0,r0,plus),...arc(y1,z1,r1,plus,minus,1),point(y0,z0,r0,minus),...arc(y0,z0,r0,minus,plus,-1)];
+ for(let i=0;i<path.length;i++)chainSegmentX(C.tiltSprocketX-C.chainWidth/2,C.tiltSprocketX+C.chainWidth/2,path[i],path[(i+1)%path.length],C.chainRadialHalf,[.12,.14,.16]);
+}
+function tangentHousingX(ro,ri,x0,x1,y,z,baseTop,color,n=48,T=(p)=>p){
+ const tau=2*Math.PI,corner=[Math.atan2(baseTop-z,ro),Math.atan2(baseTop-z,-ro)].map(a=>(a+tau)%tau);
+ const angles=Array.from({length:n},(_,i)=>tau*i/n).concat(corner).sort((a,b)=>a-b).filter((a,i,v)=>i===0||a-v[i-1]>1e-8);
+ const outer=(a,x)=>{const c=Math.cos(a),s=Math.sin(a),side=Math.abs(c)<1e-12?Infinity:ro/Math.abs(c),bottom=s<0?(baseTop-z)/s:Infinity,r=s>=0?ro:Math.min(side,bottom);return T([x,y+r*c,z+r*s])};
+ const inner=(a,x)=>T([x,y+ri*Math.cos(a),z+ri*Math.sin(a)]);
+ for(let i=0;i<angles.length;i++){const a=angles[i],b=angles[(i+1)%angles.length],o0=outer(a,x0),o1=outer(b,x0),o2=outer(a,x1),o3=outer(b,x1),i0=inner(a,x0),i1=inner(b,x0),i2=inner(a,x1),i3=inner(b,x1);
+  quad(o0,o1,o3,o2,color);quad(o2,o3,i3,i2,color);quad(o1,o0,i0,i1,color);quad(i1,i0,i2,i3,color)}
+}
+// Sweep a constant-thickness 2D path across a width. Path points contain
+// position (u,v) and the unit normal to one surface of the sheet.
+function strip(path,t,s0,s1,place,color){
+ const L=path.map(q=>[q[0]+q[2]*t/2,q[1]+q[3]*t/2]),R=path.map(q=>[q[0]-q[2]*t/2,q[1]-q[3]*t/2]);
+ const P=(q,s)=>place(q[0],q[1],s);
+ for(let i=0;i<path.length-1;i++){
+  let j=i+1;quad(P(L[i],s0),P(L[j],s0),P(L[j],s1),P(L[i],s1),color);
+  quad(P(R[j],s0),P(R[i],s0),P(R[i],s1),P(R[j],s1),color);
+  quad(P(L[i],s0),P(R[i],s0),P(R[j],s0),P(L[j],s0),color);
+  quad(P(R[i],s1),P(L[i],s1),P(L[j],s1),P(R[j],s1),color);
+ }
+ let n=path.length-1;
+ quad(P(L[0],s0),P(L[0],s1),P(R[0],s1),P(R[0],s0),color);
+ quad(P(R[n],s0),P(R[n],s1),P(L[n],s1),P(L[n],s0),color);
+}
+function mainFlapPath(){
+ const t=C.deckT,rc=C.mainR+t/2,zb=C.deckZ+t/2,zt=C.padZ-t/2,xc=C.riserX,p=[[C.armStart,zb,0,1]];
+ for(let i=0;i<=12;i++){let a=(-90+i*90/12)*Math.PI/180;p.push([xc-rc+rc*Math.cos(a),zb+rc+rc*Math.sin(a),-Math.cos(a),-Math.sin(a)])}
+ p.push([xc,zt-rc,-1,0]);
+ for(let i=1;i<=12;i++){let a=(i*90/12)*Math.PI/180;p.push([xc-rc+rc*Math.cos(a),zt-rc+rc*Math.sin(a),-Math.cos(a),-Math.sin(a)])}
+ p.push([C.padInner,zt,0,-1]);return p;
+}
+function gussetPath(){
+ const t=C.gussetT,rc=C.gussetR+t/2,gx=C.riserInner-t/2,yw=C.armHalfW+t/2,xt=gx-rc,yc=yw-rc,p=[[-gx,C.returnEndY,-1,0]];
+ for(let i=0;i<=12;i++){let a=(180-i*90/12)*Math.PI/180;p.push([-xt+rc*Math.cos(a),yc+rc*Math.sin(a),Math.cos(a),Math.sin(a)])}
+ p.push([xt,yw,0,1]);
+ for(let i=1;i<=12;i++){let a=(90-i*90/12)*Math.PI/180;p.push([xt+rc*Math.cos(a),yc+rc*Math.sin(a),Math.cos(a),Math.sin(a)])}
+ p.push([gx,C.returnEndY,1,0]);return p;
+}
+function moving(p){const a=(180-angle)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return[p[0],p[1]*c-p[2]*s,C.shaftZ+p[1]*s+p[2]*c]}
+function build(){faces.length=0;panScope=false;
+ box(-700,700,-700,700,-C.postH-20,-C.postH,[.38,.49,.31]);
+ box(-70,70,-70,70,-C.postH,0,[.64,.43,.25]);
+ box(-55,55,-55,55,0,8,[.38,.45,.51]);cylinderZ(25.4,8,93.6,[.58,.65,.69]);
+ if(showPostSprocket){
+  const steel=[.23,.27,.30],z0=C.sprocketBottom,z1=z0+C.sprocketT;
+  ringZ(C.sprocketRootR,C.sprocketInnerR,z0,z1,steel,72);
+  for(let i=0;i<C.sprocketTeeth;i++){let a=i*2*Math.PI/C.sprocketTeeth,c=Math.cos(a),s=Math.sin(a),T=p=>[c*p[0]-s*p[1],s*p[0]+c*p[1],p[2]];
+   box(-2.8,2.8,C.sprocketRootR-.5,C.sprocketTipR,z0,z1,steel,T);
+  }
+  for(let x of [-C.spindleBoltOffset,C.spindleBoltOffset])for(let y of [-C.spindleBoltOffset,C.spindleBoltOffset]){
+   cylinderZ(5,0,z1+2,[.67,.70,.72],x,y,12);cylinderZ(9,z1,z1+6,[.54,.57,.59],x,y,6);
+  }
+ }
+ panScope=true;
+ if(showHub){ringZ(42,28.5,20,65,[.18,.25,.30]);ringZ(80,28.5,65,77,[.18,.25,.30]);cylinderZ(32.5,77,105,[.24,.27,.29])}
+ // Round base has a central hub-bearing relief; stud holes are under the nuts.
+ const nut=[.61,.64,.66];
+ ringZ(C.hubR+C.hubOverlap,37.5,C.deckZ,C.deckZ+C.deckT,a36);
+ if(showMotorPlates){
+  ringZ(C.hubR+C.hubOverlap,37.5,C.deckZ+C.deckT,C.deckZ+C.deckT+C.panPlateT,a36);
+  const xs=[-70,-55,-50,-20,20,50,55,70],ys=[-225,-210,-195,-155,-120,-70],z0=C.deckZ+C.deckT+.08,z1=z0+C.panPlateT;
+  const holes=[[0,-175,15],[-30,-205,4.5],[30,-205,4.5],[-30,-145,4.5],[30,-145,4.5]];
+  for(let i=0;i<xs.length-1;i++)for(let j=0;j<ys.length-1;j++){
+   if(j===0&&(i===0||i===xs.length-2))continue;
+   const x0=xs[i],x1=xs[i+1],y0=ys[j],y1=ys[j+1],h=holes.find(q=>q[0]>x0&&q[0]<x1&&q[1]>y0&&q[1]<y1),xc=(x0+x1)/2,yc=(y0+y1)/2;
+   if(h)plateWithHole((x1-x0)/2,(y1-y0)/2,z0,z1,h[2],h[0]-xc,h[1]-yc,a36,24,p=>[xc+p[0],yc+p[1],p[2]]);
+   else box(x0,x1,y0,y1,z0,z1,a36);
+  }
+  roundCornerZ(-55,-210,15,180,270,z0,z1,a36);
+  roundCornerZ(55,-210,15,270,360,z0,z1,a36);
+ }
+ if(showHub)for(let i=0;i<5;i++){let t=(C.hubStudPhaseDeg+i*72)*Math.PI/180,x=C.studR*Math.cos(t),y=C.studR*Math.sin(t),stack=showMotorPlates?C.panPlateT:0;cylinderZ(5,C.deckZ,C.deckZ+C.deckT+stack+14,[.70,.73,.74],x,y,12);cylinderZ(9,C.deckZ+C.deckT+stack,C.deckZ+C.deckT+stack+12,nut,x,y,6)}
+ const flapPath=mainFlapPath();
+ for(let sign of [-1,1]){
+  strip(flapPath,C.deckT,-C.armHalfW,C.armHalfW,(u,v,s)=>[sign*u,s,v],a36);
+  let bx=sign*C.bearingX;
+  box(bx-C.bearingWidth/2,bx+C.bearingWidth/2,-C.bearingLength/2,C.bearingLength/2,C.bearingMountZ,C.bearingMountZ+12,[.31,.36,.43]);
+  tangentHousingX(C.bearingHeight-C.bearingCenterH,12.7,bx-C.bearingWidth/2,bx+C.bearingWidth/2,0,C.shaftZ,C.bearingMountZ+12,[.32,.36,.43]);
+  for(let yy of [-50.8,50.8]){
+   cylinderZ(5,C.padZ-C.deckT,C.bearingMountZ+12,[.70,.72,.73],bx,yy,12);
+   cylinderZ(8.5,C.bearingMountZ+12,C.bearingMountZ+19,nut,bx,yy,6);
+  }
+ }
+ if(showMotorPlates){
+  // Motor pad and four-bolt riser pad join through a tapered section.
+  function platePart(ys,zs,holes){for(let i=0;i<ys.length-1;i++)for(let j=0;j<zs.length-1;j++){
+   const y0=ys[i],y1=ys[i+1],z0=zs[j],z1=zs[j+1],h=holes.find(q=>q[0]>y0&&q[0]<y1&&q[1]>z0&&q[1]<z1),yc=(y0+y1)/2,zc=(z0+z1)/2;
+   if(h)plateWithHole((y1-y0)/2,(z1-z0)/2,0,C.tiltPlateT,h[2],h[0]-yc,h[1]-zc,a36,24,p=>[C.riserOuter+p[2],yc+p[0],zc+p[1]]);
+   else box(y0,y1,z0,z1,0,C.tiltPlateT,a36,p=>[C.riserOuter+p[2],p[0],p[1]]);
+  }}
+  platePart([-170,-150,-110,-85],[190,230,270,310],[[-130,C.tiltMotorZ,15],[-160,C.tiltMotorZ-30,4.5],[-160,C.tiltMotorZ+30,4.5],[-100,C.tiltMotorZ-30,4.5],[-100,C.tiltMotorZ+30,4.5]]);
+  box(C.riserOuter,C.riserOuter+C.tiltPlateT,-185,-170,205,295,a36);
+  roundCornerX(-170,205,15,180,270,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
+  roundCornerX(-170,295,15,90,180,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
+  prismX([[-85,190],[-85,310],[-55,315],[-55,175]],C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
+  platePart([-55,-15,15,45],[175,245,315],[-1,1].flatMap(s=>[C.gussetBottom+35,C.gussetTop-45].map(z=>[s*C.boltY,z,5])));
+  box(C.riserOuter,C.riserOuter+C.tiltPlateT,45,60,190,300,a36);
+  roundCornerX(45,190,15,270,360,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
+  roundCornerX(45,300,15,0,90,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
+ }
+ if(showTiltDrive&&showMotorPlates){
+  const fx=C.motorFlangeX,yc=C.tiltMotorY,zc=C.tiltMotorZ,caseColor=[.39,.45,.49],flangeColor=[.31,.36,.40];
+  // The gearbox mounts behind the plate; its output passes outward through the center opening.
+  ringX(14,C.motorShaftR+.5,fx-1,fx+C.tiltPlateT+2,yc,zc,flangeColor,32);
+  for(let yi=-1;yi<=1;yi++)for(let zi=-1;zi<=1;zi++){
+   const y=yc+30*yi,z=zc+30*zi;
+   if(yi===0&&zi===0)plateWithHole(15,15,-10,0,C.motorShaftR+.5,0,0,flangeColor,24,p=>[fx+p[2],y+p[0],z+p[1]]);
+   else if(yi&&zi)plateWithHole(15,15,-10,0,4.5,0,0,flangeColor,24,p=>[fx+p[2],y+p[0],z+p[1]]);
+   else box(fx-10,fx,y-15,y+15,z-15,z+15,flangeColor);
+  }
+  for(let y of [yc-30,yc+30])for(let z of [zc-30,zc+30]){
+   cylinderX(4.5,fx-10,fx+C.tiltPlateT,y,z,[.70,.72,.74],12);
+   cylinderX(8,fx+C.tiltPlateT,fx+C.tiltPlateT+5,y,z,[.66,.68,.70],12);
+  }
+  cylinderX(26,C.motorGearboxX1,fx-10,yc,zc,caseColor,32);
+  cylinderX(35,C.motorGearboxX0,C.motorGearboxX1,yc,zc,caseColor,40);
+  cylinderZ(28,75,220,[.28,.34,.39],158,yc,36);
+  cylinderZ(29,70,83,[.21,.27,.31],158,yc,36);
+  cylinderX(23,C.motorGearboxX1,fx-10,yc,zc,[.32,.37,.41],32);
+  cylinderX(C.motorShaftR,C.motorGearboxX1,C.tiltSprocketX+15,yc,zc,[.76,.79,.81],24);
+  const x=C.tiltSprocketX,t=C.tiltSprocketT,steel=[.35,.38,.42];
+  ringX(C.motorPinionRootR,C.motorShaftR,x-t/2,x+t/2,yc,zc,steel,32);
+  ringX(12,C.motorShaftR,x-5,x+5,yc,zc,steel,24);
+  for(let i=0;i<C.motorPinionTeeth;i++){
+   const a=i*2*Math.PI/C.motorPinionTeeth,c=Math.cos(a),s=Math.sin(a);
+   const T=p=>[x+p[2],yc+s*p[0]+c*p[1],zc-c*p[0]+s*p[1]];
+   box(-2.2,2.2,C.motorPinionRootR-.5,C.motorPinionTipR,-t/2,t/2,steel,T);
+  }
+  if(showTiltSprocket)tiltChainLoop();
+ }
+ for(let side of [-1,1]){
+  if(showGussets)strip(gussetPath(),C.gussetT,C.gussetBottom,C.gussetTop,(u,v,s)=>[u,side*v,s],a36);
+  for(let end of [-1,1]){
+   if(!showGussets&&(end<0||!showMotorPlates))continue;
+   for(let z of [C.gussetBottom+35,C.gussetTop-45]){
+    let y=side*C.boltY,outer=C.riserOuter+(end>0&&showMotorPlates?C.tiltPlateT:0),inner=showGussets?C.gussetInner:C.riserInner;
+    cylinderX(5,end>0?inner:-outer,end>0?outer:-inner,y,z,[.70,.72,.73],12);
+    if(end>0){
+     cylinderX(11,outer,outer+1.5,y,z,[.72,.74,.75]);
+     cylinderX(9,outer+1.5,outer+7.5,y,z,nut,6);
+     cylinderX(11,inner-1.5,inner,y,z,[.72,.74,.75]);
+     cylinderX(9,inner-8.5,inner-1.5,y,z,nut,6);
+    }else{
+     cylinderX(11,-outer-1.5,-outer,y,z,[.72,.74,.75]);
+     cylinderX(9,-outer-7.5,-outer-1.5,y,z,nut,6);
+     cylinderX(11,-inner,-inner+1.5,y,z,[.72,.74,.75]);
+     cylinderX(9,-inner+1.5,-inner+8.5,y,z,nut,6);
+    }
+   }
+  }
+ }
+ if(showMastPlates){
+  // Upper bridge sits on the bearing pads, and its four holes share their bolts.
+  plateWithHole(130,C.armHalfW,C.padZ,C.upperMastTop,C.mastHole/2,0,C.mastY,a36);
+  for(let sx of [-1,1])for(let sy of [-1,1]){
+   const xc=sx*157.5,yc=sy*37.5;
+   plateWithHole(27.5,37.5,C.padZ,C.upperMastTop,6,sx*2.5,sy*13.3,a36,24,p=>[xc+p[0],yc+p[1],p[2]]);
+  }
+  // Lower bridge stays visible when the gussets are hidden for inspection.
+  // It is a bent U with curved returns and perforated upright tabs.
+   plateWithHole(C.lowerMastHalfX,C.lowerMastFlatY,C.lowerMastBottom,C.lowerMastBottom+C.mastPlateT,C.mastHole/2,0,C.mastY,a36);
+   box(-C.lowerMastTongueHalfX,C.lowerMastTongueHalfX,C.lowerMastFlatY,C.lowerMastTongueEndY,C.lowerMastBottom,C.lowerMastBottom+C.mastPlateT,a36);
+   for(let side of [-1,1]){
+    let p=[],rc=C.lowerMastRC,yf=C.lowerMastFlatY,zm=C.lowerMastMid,zb=C.lowerMastBendTop;
+    for(let i=0;i<=12;i++){let a=(270+i*90/12)*Math.PI/180;p.push([yf+rc*Math.cos(a),zb+rc*Math.sin(a),-Math.cos(a),-Math.sin(a)])}
+    for(let [x0,x1] of side>0?[[-C.lowerMastHalfX,-C.lowerMastTongueHalfX],[C.lowerMastTongueHalfX,C.lowerMastHalfX]]:[[-C.lowerMastHalfX,C.lowerMastHalfX]])
+     strip(p,C.mastPlateT,x0,x1,(u,v,s)=>[s,side*u,v],a36);
+    const midZ=(C.lowerMastBendTop+C.lowerMastTabTop)/2,halfZ=(C.lowerMastTabTop-C.lowerMastBendTop)/2;
+    for(let sx of [-1,1]){
+     let xc=sx*(side>0?52.5:37.5),hx=side>0?22.5:37.5,holeX=sx*(C.lowerMastBoltX-Math.abs(xc));
+     plateWithHole(hx,halfZ,-C.mastPlateT/2,C.mastPlateT/2,5,holeX,C.lowerMastBoltZ-midZ,a36,24,p=>[xc+p[0],side*(C.lowerMastTabY+p[2]),midZ+p[1]]);
+     if(showGussets){
+      const x=sx*C.lowerMastBoltX,z=C.lowerMastBoltZ,boltY0=Math.min(side*(C.armHalfW-C.mastPlateT),side*(C.armHalfW+C.gussetT)),boltY1=Math.max(side*(C.armHalfW-C.mastPlateT),side*(C.armHalfW+C.gussetT));
+      cylinderY(5,boltY0,boltY1,x,z,[.70,.72,.73],12);
+      cylinderY(11,side*(C.armHalfW-C.mastPlateT-1.5),side*(C.armHalfW-C.mastPlateT),x,z,[.72,.74,.75]);
+      cylinderY(11,side*(C.armHalfW+C.gussetT),side*(C.armHalfW+C.gussetT+1.5),x,z,[.72,.74,.75]);
+      cylinderY(9,side*(C.armHalfW-C.mastPlateT-7.5),side*(C.armHalfW-C.mastPlateT-1.5),x,z,nut,6);
+      cylinderY(9,side*(C.armHalfW+C.gussetT+1.5),side*(C.armHalfW+C.gussetT+7.5),x,z,nut,6);
+     }
+    }
+   }
+ }
+ if(showMast)ringZ(C.mastOD/2,C.mastOD/2-C.mastWall,C.mastBottom,C.mastTop,[.66,.70,.72],32,0,C.mastY);
+ cylinderX(12.7,-C.shaftHalf,C.shaftHalf,0,C.shaftZ,[.78,.80,.82]);
+ if(showTiltSprocket){
+  const steel=[.35,.38,.42],x=C.tiltSprocketX,t=C.tiltSprocketT;
+  ringX(C.tiltSprocketRootR,12.7,x-t/2,x+t/2,0,C.shaftZ,steel,48);
+  ringX(C.tiltSprocketCollarR,12.7,x-C.tiltSprocketCollarW/2,x+C.tiltSprocketCollarW/2,0,C.shaftZ,steel,32);
+  for(let i=0;i<C.tiltSprocketTeeth;i++){
+   const a=i*2*Math.PI/C.tiltSprocketTeeth+(180-angle)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+   const T=p=>[x+p[2],s*p[0]+c*p[1],C.shaftZ-c*p[0]+s*p[1]];
+   box(-2.8,2.8,C.tiltSprocketRootR-.5,C.tiltSprocketTipR,-t/2,t/2,steel,T);
+  }
+ }
+ // Four vertical tubes touch the panel backs; four horizontal rails stack behind them.
+ const t=C.tube,outerX=C.gapX/2+C.panelX-C.tubeInset,yEnd=C.panelY+C.gapY/2+C.endOverhang,horizontalY=C.panelY+C.gapY/2-C.horizontalInset,horizontalX=outerX+t/2+C.horizontalOverhang,frame=[.07,.09,.11];
+ function tube(x0,x1,y0,y1,z0=-C.mountCenterH-C.spacerT-t){tiledBox(x0,x1,y0,y1,z0,z0+t,frame,moving)}
+ for(let x of [-outerX,-C.clampX,C.clampX,outerX])tube(x-t/2,x+t/2,-yEnd,yEnd);
+ for(let y of [-horizontalY,C.lowerCenterRailY,C.upperCenterRailY,horizontalY])
+  tube(-horizontalX,horizontalX,y-t/2,y+t/2,-C.mountCenterH-C.spacerT);
+ for(let x of [-C.clampX,C.clampX]){
+  const blue=[.27,.36,.83],halfW=C.mountWidth/2,halfL=C.mountLength/2,ringR=C.mountOverallH-C.mountCenterH;
+  box(x-halfW,x+halfW,-halfL,halfL,-C.mountCenterH-C.spacerT,-C.mountCenterH,[.58,.61,.63],moving);
+  box(x-halfW,x+halfW,-halfL,halfL,-C.mountCenterH,-C.mountCenterH+8,blue,moving);
+  tangentHousingX(ringR,12.7,x-halfW,x+halfW,0,0,-C.mountCenterH+8,blue,48,moving);
+  for(let y of [-C.mountHoleSpan/2,C.mountHoleSpan/2])box(x-4,x+4,y-4,y+4,-C.mountCenterH+8,-C.mountCenterH+11,[.70,.73,.75],moving);
+ }
+ if(showPanels)for(let sx of [-1,1])for(let sy of [-1,1]){
+  let x0=sx>0?C.gapX/2:-C.gapX/2-C.panelX,y0=sy>0?C.gapY/2:-C.gapY/2-C.panelY;
+  const panelTop=-C.mountCenterH-C.spacerT-t-C.renderGap;
+  tiledBox(x0,x0+C.panelX,y0,y0+C.panelY,panelTop-30,panelTop,[.17,.25,.32],moving);
+ }
+ panScope=false;
+}
+function rotate(p){let a=Math.cos(yaw),b=Math.sin(yaw),c=Math.cos(pitch),d=Math.sin(pitch),x=a*p[0]-b*p[1],y=b*p[0]+a*p[1];return[x,c*y-d*p[2],d*y+c*p[2]]}
+function litColor(p,col){let a=p[0],b=p[1],c=p[2],u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]],n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],m=Math.hypot(...n)||1,light=.72+.28*Math.abs((-.4*n[0]+.4*n[1]+.82*n[2])/m);return col.map(x=>Math.min(1,x*light))}
+let viewInfo={scale:1,cx:0,cy:0};
+function draw(){let d=Math.min(devicePixelRatio||1,2),w=canvas.clientWidth,h=canvas.clientHeight,pixelW=Math.max(1,Math.round(w*d)),pixelH=Math.max(1,Math.round(h*d));if(canvas.width!==pixelW)canvas.width=pixelW;if(canvas.height!==pixelH)canvas.height=pixelH;if(gl)gl.viewport(0,0,canvas.width,canvas.height);else{ctx.setTransform(d,0,0,d,0,0);ctx.fillStyle='#e8edf0';ctx.fillRect(0,0,w,h)}build();
+ let fs=faces.map(f=>({p:f.p.map(rotate),color:f.color})),mnx=Infinity,mxx=-Infinity,mny=Infinity,mxy=-Infinity;
+ for(let f of fs)for(let p of f.p){mnx=Math.min(mnx,p[0]);mxx=Math.max(mxx,p[0]);mny=Math.min(mny,p[1]);mxy=Math.max(mxy,p[1])}
+ let scale=detail?.82*Math.min(w,h)/detailSpan*zoom:.88*Math.min(w/Math.max(1,mxx-mnx),h/Math.max(1,mxy-mny))*zoom;
+ let focal=rotate([0,0,detailZ]),cx=detail?focal[0]:(mnx+mxx)/2,cy=detail?focal[1]:(mny+mxy)/2;viewInfo={scale,cx,cy};
+ if(gl){
+  let minZ=Infinity,maxZ=-Infinity;for(const f of fs)for(const p of f.p){minZ=Math.min(minZ,p[2]);maxZ=Math.max(maxZ,p[2])}
+  const depthSpan=Math.max(1,maxZ-minZ),data=new Float32Array(fs.length*18);let k=0;
+  for(const f of fs){const color=litColor(f.p,f.color);for(const p of f.p){
+   data[k++]=2*(w/2+(p[0]-cx)*scale+pan[0])/w-1;
+   data[k++]=1-2*(h/2-(p[1]-cy)*scale+pan[1])/h;
+   data[k++]=.98-1.96*(p[2]-minZ)/depthSpan;
+   data[k++]=color[0];data[k++]=color[1];data[k++]=color[2];
+  }}
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(glProgram);gl.bindBuffer(gl.ARRAY_BUFFER,glBuffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(positionLocation);gl.vertexAttribPointer(positionLocation,3,gl.FLOAT,false,24,0);
+  gl.enableVertexAttribArray(colorLocation);gl.vertexAttribPointer(colorLocation,3,gl.FLOAT,false,24,12);
+  gl.drawArrays(gl.TRIANGLES,0,fs.length*3);
+ }else{
+  fs.sort((a,b)=>a.p.reduce((s,p)=>s+p[2],0)-b.p.reduce((s,p)=>s+p[2],0));
+  for(let f of fs){let p=f.p;ctx.beginPath();ctx.moveTo(w/2+(p[0][0]-cx)*scale+pan[0],h/2-(p[0][1]-cy)*scale+pan[1]);for(let i=1;i<3;i++)ctx.lineTo(w/2+(p[i][0]-cx)*scale+pan[0],h/2-(p[i][1]-cy)*scale+pan[1]);ctx.closePath();ctx.fillStyle='rgb('+litColor(p,f.color).map(x=>Math.round(x*255)).join(',')+')';ctx.fill()}
+ }
+ document.getElementById('zoom-value').value=Math.round(zoom*100)+'%';document.getElementById('angle-value').value=angle+'°';document.getElementById('azimuth-value').value=azimuth+'°';
+ document.getElementById('winter').setAttribute('aria-pressed',String(angle===71));document.getElementById('wind').setAttribute('aria-pressed',String(angle===0));
+}
+function setview(y,p,det,z=150,span=850){yaw=y;pitch=p;detail=det;detailZ=z;detailSpan=span;pan=[0,0];draw()}
+document.getElementById('whole').onclick=()=>setview(2.55,-.65,false);
+document.getElementById('close').onclick=()=>setview(.58,-.75,true,70,430);
+document.getElementById('bracket').onclick=()=>setview(.65,-.7,true,250,1000);
+document.getElementById('tilt-drive-view').onclick=()=>setview(Math.PI/2,-Math.PI/2,true,260,600);
+document.getElementById('mast-view').onclick=()=>setview(.8,-.55,true,950,2200);
+document.getElementById('side').onclick=()=>setview(Math.PI/2,-Math.PI/2,false);
+document.getElementById('top').onclick=()=>setview(0,0,false);
+document.getElementById('fit').onclick=()=>{zoom=1;detail=false;pan=[0,0];document.getElementById('zoom').value=100;draw()};
+document.getElementById('winter').onclick=()=>{angle=71;document.getElementById('angle').value=71;draw()};
+document.getElementById('wind').onclick=()=>{angle=0;document.getElementById('angle').value=0;draw()};
+document.getElementById('pan-mode').onclick=e=>{panMode=!panMode;e.currentTarget.setAttribute('aria-pressed',String(panMode));canvas.style.cursor=panMode?'grab':'grab'};
+document.getElementById('reverse-vertical-drag').onchange=e=>{invertOrbitPitch=e.target.checked};
+document.getElementById('hub').onchange=e=>{showHub=e.target.checked;draw()};
+document.getElementById('panels').onchange=e=>{showPanels=e.target.checked;draw()};
+document.getElementById('gussets').onchange=e=>{showGussets=e.target.checked;draw()};
+document.getElementById('mast-plates').onchange=e=>{showMastPlates=e.target.checked;draw()};
+document.getElementById('mast').onchange=e=>{showMast=e.target.checked;draw()};
+document.getElementById('motor-plates').onchange=e=>{showMotorPlates=e.target.checked;draw()};
+document.getElementById('post-sprocket').onchange=e=>{showPostSprocket=e.target.checked;draw()};
+document.getElementById('tilt-sprocket').onchange=e=>{showTiltSprocket=e.target.checked;draw()};
+document.getElementById('tilt-drive').onchange=e=>{showTiltDrive=e.target.checked;draw()};
+document.getElementById('angle').oninput=e=>{angle=+e.target.value;draw()};
+document.getElementById('azimuth').oninput=e=>{azimuth=Math.max(-90,Math.min(90,+e.target.value));draw()};
+document.getElementById('zoom').oninput=e=>{zoom=+e.target.value/100;draw()};
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,pan:panMode||e.shiftKey||e.button===2};canvas.style.cursor='grabbing'});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;if(drag.pan){pan[0]+=dx;pan[1]+=dy}else{yaw+=dx*.007;pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch+(invertOrbitPitch?dy:-dy)*.007))}draw()});
+canvas.addEventListener('pointerup',()=>{drag=null;canvas.style.cursor='grab'});canvas.addEventListener('pointercancel',()=>{drag=null});canvas.addEventListener('contextmenu',e=>e.preventDefault());
+canvas.addEventListener('wheel',e=>{e.preventDefault();let r=canvas.getBoundingClientRect(),px=e.clientX-r.left-r.width/2,py=e.clientY-r.top-r.height/2,old=zoom;zoom=Math.max(.25,Math.min(5,zoom*Math.exp(-e.deltaY*.001)));pan[0]=px-(px-pan[0])*zoom/old;pan[1]=py-(py-pan[1])*zoom/old;document.getElementById('zoom').value=Math.round(zoom*100);draw()},{passive:false});
+canvas.addEventListener('dblclick',e=>{let r=canvas.getBoundingClientRect();pan[0]+=r.width/2-(e.clientX-r.left);pan[1]+=r.height/2-(e.clientY-r.top);draw()});
+new ResizeObserver(draw).observe(canvas);draw();
+</script>
