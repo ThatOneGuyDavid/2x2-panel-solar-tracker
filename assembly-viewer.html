@@ -37,7 +37,7 @@ canvas{flex:1;width:0;height:100%;display:block;touch-action:none}
 <h1>Solar tracker</h1>
 <p class="subtle">Four-panel assembly · geometry preview</p>
 <h2>Controls</h2>
-<nav><button id="whole">Whole view</button><button id="close">Hub close-up</button><button id="bracket">Bracket detail</button><button id="tilt-drive-view">Tilt drive</button><button id="mast-view">Mast view</button><button id="side">Side</button><button id="top">Top</button><button id="fit">Fit</button><button id="winter" aria-pressed="true">Winter 71°</button><button id="wind" aria-pressed="false">Wind 0°</button><button id="pan-mode" aria-pressed="false">Pan view mode</button></nav>
+<nav><button id="whole">Whole view</button><button id="close">Hub close-up</button><button id="bracket">Bracket detail</button><button id="tilt-drive-view">Tilt drive</button><button id="tilt-plate-view">Tilt plate only</button><button id="pan-drive-view">Pan drive</button><button id="pan-drive-under-view">Pan motor underside</button><button id="mast-view">Mast view</button><button id="side">Side</button><button id="top">Top</button><button id="fit">Fit</button><button id="winter" aria-pressed="true">Winter 71°</button><button id="wind" aria-pressed="false">Wind 0°</button><button id="pan-mode" aria-pressed="false">Pan view mode</button></nav>
 <label>Panel tilt: <output id="angle-value">71°</output><input id="angle" type="range" min="0" max="71" value="71"></label>
 <label>Array pan: <output id="azimuth-value">0°</output><input id="azimuth" type="range" min="-90" max="90" value="0"></label>
 <label>Zoom: <output id="zoom-value">100%</output><input id="zoom" type="range" min="25" max="500" value="100"></label>
@@ -48,6 +48,7 @@ canvas{flex:1;width:0;height:100%;display:block;touch-action:none}
 <li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#a56c40"></span>Post and pan</div><ul>
 <li><label><input id="hub" type="checkbox" checked>Hub</label></li>
 <li><label><input id="post-sprocket" type="checkbox" checked>Fixed pan sprocket</label></li>
+<li><label><input id="pan-drive" type="checkbox" checked>Pan motor and chain</label></li>
 </ul></div></li>
 <li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#8099ad"></span>Tilt bracket</div><ul>
 <li><label><input id="gussets" type="checkbox" checked>Gusset plates</label></li>
@@ -70,8 +71,16 @@ canvas{flex:1;width:0;height:100%;display:block;touch-action:none}
 <li><span>6×6 post</span><span class="qty">1</span></li>
 <li><span>Trailer spindle and hub kit</span><span class="qty">1</span></li>
 <li><span>Hub studs and nuts</span><span class="qty">5</span></li>
-<li><span>Pan motor mount plate</span><span class="qty">1</span></li>
+<li><span>Hub-mounted pan plate</span><span class="qty">1</span></li>
+<li><span>Motor output flange plate</span><span class="qty">1</span></li>
+<li><span>Extended adapter plate</span><span class="qty">1</span></li>
+<li><span>Motor flange bolts</span><span class="qty">4</span></li>
+<li><span>Extended motor adapter plate</span><span class="qty">1</span></li>
+<li><span>Vertical stand-off bolts</span><span class="qty">4</span></li>
+<li><span>Right-angle geared motor proxy</span><span class="qty">1</span></li>
 <li><span>Fixed 72-tooth sprocket</span><span class="qty">1</span></li>
+<li><span>12-tooth motor sprocket</span><span class="qty">1</span></li>
+<li><span>Bicycle-chain loop proxy</span><span class="qty">1</span></li>
 </ul></div></li>
 <li><div class="tree-group"><div class="tree-title"><span class="swatch" style="background:#8099ad"></span>Tilt bracket</div><ul>
 <li><span>Bent hub and bearing bracket</span><span class="qty">1</span></li>
@@ -112,11 +121,11 @@ if(gl){
  gl.useProgram(glProgram);glBuffer=gl.createBuffer();positionLocation=gl.getAttribLocation(glProgram,'aPosition');colorLocation=gl.getAttribLocation(glProgram,'aColor');
  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearColor(.91,.93,.94,1);
 }
-const C={post:140,postH:1524,hubFaceZ:65,hubFaceT:12,hubR:80,studR:63.5,hubStudPhaseDeg:18,hubOverlap:25.4,deckZ:77,deckT:5/16*25.4,armStart:75,armHalfW:75,riserX:202,mainR:13,padInner:130,padZ:225+7*25.4,bearingX:160,panelX:1727.2,panelY:1143,gapX:120,gapY:60,tube:25.4,tubeInset:300,endOverhang:30,horizontalInset:100,horizontalOverhang:30,upperCenterRailY:200,lowerCenterRailY:-240,bearingWidth:36.11875,bearingLength:139.7,bearingHeight:71.4375,bearingCenterH:36.5125,mountHoleSpan:101.6,shaftEnd:20,spacerT:25.4,renderGap:1,gussetH:7*25.4,gussetT:1/4*25.4,gussetR:10,gussetTopGap:5,gussetDrop:2*25.4,returnEndY:10,boltY:35,mastHole:35,mastY:40,mastOD:30,mastWall:1.5,mastTop:1800,mastPlateT:1/4*25.4,upperMastHalfX:185,lowerMastHalfX:75,lowerMastR:10,panPlateT:1/4*25.4,panPlateEndY:-225,panPlateHalfX:70,panMotorY:-175,tiltPlateT:1/4*25.4,chainPitch:12.7,sprocketTeeth:72,sprocketInnerR:40,sprocketBottom:8,sprocketT:2.2,tiltSprocketTeeth:28,tiltSprocketX:230,tiltSprocketT:2.2,tiltSprocketCollarR:20,tiltSprocketCollarW:18,spindleBoltOffset:40};
+const C={post:140,postH:1524,hubFaceZ:65,hubFaceT:12,hubR:80,studR:63.5,hubStudPhaseDeg:18,hubOverlap:25.4,deckZ:77,deckT:5/16*25.4,armStart:75,armHalfW:75,riserX:202,mainR:13,padInner:130,padZ:225+7*25.4,bearingX:160,panelX:1727.2,panelY:1143,gapX:120,gapY:60,tube:25.4,tubeInset:300,endOverhang:30,horizontalInset:100,horizontalOverhang:30,upperCenterRailY:200,lowerCenterRailY:-240,bearingWidth:36.11875,bearingLength:139.7,bearingHeight:71.4375,bearingCenterH:36.5125,mountHoleSpan:101.6,shaftEnd:20,spacerT:25.4,renderGap:1,gussetH:7*25.4,gussetT:1/4*25.4,gussetR:10,gussetTopGap:5,gussetDrop:2*25.4,returnEndY:10,boltY:35,mastHole:35,mastY:40,mastOD:30,mastWall:1.5,mastTop:1800,mastPlateT:1/4*25.4,upperMastHalfX:185,lowerMastHalfX:75,lowerMastR:10,panPlateT:1/4*25.4,panPlateEndY:-290,panPlateHalfX:55,panMotorY:-205,panMotorGearboxD:70,panMotorGearboxH:60,motorFlangeSize:90,motorFlangeT:6.35,motorFlangeBoltOffset:30,spindleFlangeSize:110,spindleFlangeT:8,spindleRecess:8,panAdapterSize:140,panAdapterX:110,panMotorBoltOffset:30,panStandoffOffset:55,panSlotLength:30,panSlotWidth:9,panMotorGearboxTopZ:80,panMotorBodyD:56,panMotorBodyL:145,panChainCenterDistance:205,tiltPlateT:1/4*25.4,chainPitch:12.7,sprocketTeeth:72,sprocketInnerR:40,sprocketBottom:0,sprocketT:2.2,tiltSprocketTeeth:28,tiltSprocketX:230,tiltSprocketT:2.2,tiltSprocketCollarR:20,tiltSprocketCollarW:18,spindleBoltOffset:40};
 C.mountCenterH=C.bearingCenterH;C.mountOverallH=C.bearingHeight;C.mountLength=C.bearingLength;C.mountWidth=C.bearingWidth;
 C.sprocketPitchR=C.chainPitch/(2*Math.sin(Math.PI/C.sprocketTeeth));C.sprocketRootR=C.sprocketPitchR-3;C.sprocketTipR=C.sprocketPitchR+4;
 C.tiltSprocketPitchR=C.chainPitch/(2*Math.sin(Math.PI/C.tiltSprocketTeeth));C.tiltSprocketRootR=C.tiltSprocketPitchR-3;C.tiltSprocketTipR=C.tiltSprocketPitchR+4;
-C.tiltMotorY=-130;C.motorPinionTeeth=12;C.motorPinionPitchR=C.chainPitch/(2*Math.sin(Math.PI/C.motorPinionTeeth));C.motorPinionRootR=C.motorPinionPitchR-2;C.motorPinionTipR=C.motorPinionPitchR+2.5;C.motorShaftR=7.5;C.motorGearboxX0=128;C.motorGearboxX1=188;C.motorFlangeX=C.riserX+C.deckT/2;C.chainWidth=6.4;C.chainRadialHalf=2.2;
+C.tiltMotorY=-130;C.motorPinionTeeth=12;C.motorPinionPitchR=C.chainPitch/(2*Math.sin(Math.PI/C.motorPinionTeeth));C.motorPinionRootR=C.motorPinionPitchR-2;C.motorPinionTipR=C.motorPinionPitchR+2.5;C.motorShaftR=7.5;C.motorGearboxX0=128;C.motorGearboxX1=188;C.motorFlangeX=C.riserX+C.deckT/2;C.chainWidth=6.4;C.chainRadialHalf=2.2;C.panChainZ=C.sprocketBottom+C.sprocketT/2;C.panMotorGearboxBottomZ=C.panMotorGearboxTopZ-C.panMotorGearboxH;C.panMotorMidZ=(C.panMotorGearboxTopZ+C.panMotorGearboxBottomZ)/2;C.panMotorBodyX0=-35-C.panMotorBodyL;C.panMotorBodyX1=-35;
 C.upperMastTop=C.padZ+C.mastPlateT;C.bearingMountZ=C.upperMastTop;C.shaftZ=C.bearingMountZ+C.bearingCenterH;
 C.gussetTop=C.padZ-C.deckT-C.gussetTopGap-C.gussetDrop;C.gussetBottom=C.gussetTop-C.gussetH;
 C.tiltMotorZ=(C.gussetTop+C.gussetBottom)/2;
@@ -128,7 +137,7 @@ C.mastBottom=C.lowerMastBottom-30;
 C.riserInner=C.riserX-C.deckT/2;C.riserOuter=C.riserX+C.deckT/2;C.gussetInner=C.riserInner-C.gussetT;
 C.clampX=C.gapX/2+C.tubeInset;
 C.shaftHalf=C.clampX+C.mountWidth/2+C.shaftEnd;
-let yaw=2.55,pitch=-.65,zoom=1,angle=71,azimuth=0,panScope=false,showPanels=true,showHub=true,showGussets=true,showMastPlates=true,showMast=true,showMotorPlates=true,showPostSprocket=true,showTiltSprocket=true,showTiltDrive=true,detail=false,detailZ=150,detailSpan=850,pan=[0,0],panMode=false,invertOrbitPitch=true,drag=null;
+let yaw=2.55,pitch=-.65,zoom=1,angle=71,azimuth=0,panScope=false,showPanels=true,showHub=true,showGussets=true,showMastPlates=true,showMast=true,showMotorPlates=true,showPostSprocket=true,showPanDrive=true,showTiltSprocket=true,showTiltDrive=true,tiltPlateOnly=false,detail=false,detailY=0,detailZ=150,detailSpan=850,pan=[0,0],panMode=false,invertOrbitPitch=true,drag=null;
 const faces=[];
 const a36=[.50,.60,.68];
 function face(a,b,c,color){
@@ -141,10 +150,40 @@ function box(x0,x1,y0,y1,z0,z1,color,transform){
  const e=T([x0,y0,z1]),f=T([x1,y0,z1]),g=T([x1,y1,z1]),h=T([x0,y1,z1]);
  quad(a,d,c,b,color);quad(e,f,g,h,color);quad(a,b,f,e,color);quad(b,c,g,f,color);quad(c,d,h,g,color);quad(d,a,e,h,color);
 }
+function triangulate2D(points){
+ const area=points.reduce((s,p,i)=>{const q=points[(i+1)%points.length];return s+p[0]*q[1]-q[0]*p[1]},0),orient=Math.sign(area)||1,ring=points.map((_,i)=>i),triangles=[],cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+ const inside=(p,a,b,c)=>{const x=cross(a,b,p)*orient,y=cross(b,c,p)*orient,z=cross(c,a,p)*orient;return x>=-1e-7&&y>=-1e-7&&z>=-1e-7};
+ for(let guard=0;ring.length>3&&guard<points.length*points.length;guard++){
+  let clipped=false;
+  for(let i=0;i<ring.length;i++){
+   const a=ring[(i+ring.length-1)%ring.length],b=ring[i],c=ring[(i+1)%ring.length];
+   if(cross(points[a],points[b],points[c])*orient<=1e-7)continue;
+   if(ring.some(j=>j!==a&&j!==b&&j!==c&&inside(points[j],points[a],points[b],points[c])))continue;
+   triangles.push([a,b,c]);ring.splice(i,1);clipped=true;break;
+  }
+  if(!clipped)break;
+ }
+ if(ring.length===3)triangles.push(ring);
+ return triangles;
+}
 function prismX(outline,x0,x1,color){
  const a=outline.map(([y,z])=>[x0,y,z]),b=outline.map(([y,z])=>[x1,y,z]);
- for(let i=1;i<outline.length-1;i++){face(a[0],a[i+1],a[i],color);face(b[0],b[i],b[i+1],color)}
+ for(const t of triangulate2D(outline)){face(a[t[0]],a[t[2]],a[t[1]],color);face(b[t[0]],b[t[1]],b[t[2]],color)}
  for(let i=0;i<outline.length;i++){let j=(i+1)%outline.length;quad(a[i],a[j],b[j],b[i],color)}
+}
+function roundedPolygon(points,radius=15,segments=8){
+ const area=points.reduce((s,p,i)=>{const q=points[(i+1)%points.length];return s+p[0]*q[1]-q[0]*p[1]},0),out=[];
+ for(let i=0;i<points.length;i++){
+  const p=points[(i+points.length-1)%points.length],v=points[i],q=points[(i+1)%points.length];
+  const a=[v[0]-p[0],v[1]-p[1]],b=[q[0]-v[0],q[1]-v[1]],la=Math.hypot(...a),lb=Math.hypot(...b),u=[a[0]/la,a[1]/la],w=[b[0]/lb,b[1]/lb];
+  const turn=Math.atan2(u[0]*w[1]-u[1]*w[0],u[0]*w[0]+u[1]*w[1]);
+  if(Math.abs(turn)<1e-5){out.push(v);continue}
+  const d=Math.min(radius*Math.tan(Math.abs(turn)/2),la*.45,lb*.45),start=[v[0]-u[0]*d,v[1]-u[1]*d],end=[v[0]+w[0]*d,v[1]+w[1]*d],side=Math.sign(turn),center=[start[0]-u[1]*side*radius,start[1]+u[0]*side*radius];
+  let a0=Math.atan2(start[1]-center[1],start[0]-center[0]),a1=Math.atan2(end[1]-center[1],end[0]-center[0]);
+  if(side>0){while(a1<a0)a1+=2*Math.PI}else{while(a1>a0)a1-=2*Math.PI}
+  for(let j=0;j<=segments;j++){const t=a0+(a1-a0)*j/segments;out.push([center[0]+radius*Math.cos(t),center[1]+radius*Math.sin(t)])}
+ }
+ return out;
 }
 function prismZ(outline,z0,z1,color){
  const a=outline.map(([x,y])=>[x,y,z0]),b=outline.map(([x,y])=>[x,y,z1]);
@@ -153,6 +192,8 @@ function prismZ(outline,z0,z1,color){
 }
 function roundCornerX(y,z,r,a0,a1,x0,x1,color){let p=[[y,z]];for(let i=0;i<=12;i++){let a=(a0+(a1-a0)*i/12)*Math.PI/180;p.push([y+r*Math.cos(a),z+r*Math.sin(a)])}prismX(p,x0,x1,color)}
 function roundCornerZ(x,y,r,a0,a1,z0,z1,color){let p=[[x,y]];for(let i=0;i<=12;i++){let a=(a0+(a1-a0)*i/12)*Math.PI/180;p.push([x+r*Math.cos(a),y+r*Math.sin(a)])}prismZ(p,z0,z1,color)}
+function capsuleFaceY(cx,cy,length,width,z,color,n=12){const r=width/2,h=(length-width)/2,p=[];for(let i=0;i<=n;i++){const a=Math.PI*i/n;p.push([cx+r*Math.cos(a),cy+h+r*Math.sin(a),z])}for(let i=0;i<=n;i++){const a=Math.PI+Math.PI*i/n;p.push([cx+r*Math.cos(a),cy-h+r*Math.sin(a),z])}const c=[cx,cy,z];for(let i=0;i<p.length;i++)face(c,p[i],p[(i+1)%p.length],color)}
+function capsulePrismYz(cy,cz,length,width,x0,x1,color,n=12){const r=width/2,h=(length-width)/2,p=[];for(let i=0;i<=n;i++){const a=Math.PI+Math.PI*i/n;p.push([cy+r*Math.cos(a),cz-h+r*Math.sin(a)])}for(let i=0;i<=n;i++){const a=Math.PI*i/n;p.push([cy+r*Math.cos(a),cz+h+r*Math.sin(a)])}prismX(p,x0,x1,color)}
 // Small triangles keep the depth ordering local where long rails cross panels.
 function tiledBox(x0,x1,y0,y1,z0,z1,color,T,maxSpan=180){
  const nx=Math.max(1,Math.ceil((x1-x0)/maxSpan)),ny=Math.max(1,Math.ceil((y1-y0)/maxSpan)),nz=Math.max(1,Math.ceil((z1-z0)/maxSpan));
@@ -215,6 +256,79 @@ function tiltChainLoop(){
  const path=[point(y0,z0,r0,plus),...arc(y1,z1,r1,plus,minus,1),point(y0,z0,r0,minus),...arc(y0,z0,r0,minus,plus,-1)];
  for(let i=0;i<path.length;i++)chainSegmentX(C.tiltSprocketX-C.chainWidth/2,C.tiltSprocketX+C.chainWidth/2,path[i],path[(i+1)%path.length],C.chainRadialHalf,[.12,.14,.16]);
 }
+function panChainPath(bigRadius,smallRadius){
+ const d=C.panChainCenterDistance,q=(bigRadius-smallRadius)/d,nx=Math.sqrt(1-q*q),ny=-q;
+ const start=Math.atan2(ny,nx);let end=Math.atan2(ny,-nx);while(end<=start)end+=2*Math.PI;
+ const big=Array.from({length:81},(_,i)=>{const a=start+(end-start)*i/80;return[bigRadius*Math.cos(a),bigRadius*Math.sin(a)]});
+ const smallStart=end,smallEnd=start+2*Math.PI;
+ const small=Array.from({length:32},(_,i)=>{const a=smallStart+(smallEnd-smallStart)*(i+1)/32;return[smallRadius*Math.cos(a),-d+smallRadius*Math.sin(a)]});
+ return [...big,...small];
+}
+function panChainLoop(){
+ const outer=panChainPath(C.sprocketPitchR+C.chainRadialHalf,C.motorPinionPitchR+C.chainRadialHalf);
+ const inner=panChainPath(C.sprocketPitchR-C.chainRadialHalf,C.motorPinionPitchR-C.chainRadialHalf);
+ const z0=C.panChainZ-C.chainWidth/2,z1=C.panChainZ+C.chainWidth/2,color=[.12,.14,.16];
+ for(let i=0;i<outer.length;i++){
+  const j=(i+1)%outer.length,op=outer[i],oq=outer[j],ip=inner[i],iq=inner[j];
+  const O0=[op[0],op[1],z0],O1=[oq[0],oq[1],z0],O2=[oq[0],oq[1],z1],O3=[op[0],op[1],z1];
+  const I0=[ip[0],ip[1],z0],I1=[iq[0],iq[1],z0],I2=[iq[0],iq[1],z1],I3=[ip[0],ip[1],z1];
+  quad(O0,O1,O2,O3,color);quad(I1,I0,I3,I2,color);quad(O3,O2,I2,I3,color);quad(O0,I0,I1,O1,color);
+ }
+}
+function drawPanMounting(){
+ if(!showMotorPlates)return;
+ const y=C.panMotorY,zBottom=C.panMotorGearboxBottomZ,z0=zBottom-C.motorFlangeT,z1=zBottom;
+ // Narrow adapter plate carries the motor flange's four-bolt pattern.
+ const xs=[-55,-45,-35,-25,25,35,45,55],ys=[-70,-60,-45,-35,-25,25,35,45,60,70];
+ const holes=[[-30,-55,4.5],[30,-55,4.5],[-30,55,4.5],[30,55,4.5]];
+ for(let i=0;i<xs.length-1;i++)for(let j=0;j<ys.length-1;j++){
+  if((i===0||i===xs.length-2)&&(j===0||j===ys.length-2))continue;
+  const x0=xs[i],x1=xs[i+1],y0=ys[j],y1=ys[j+1];
+  if(x0>=-45&&x1<=45&&y0>=-45&&y1<=45)continue;
+  const h=holes.find(q=>q[0]>x0&&q[0]<x1&&q[1]>y0&&q[1]<y1),X=(x0+x1)/2,Y=(y0+y1)/2;
+  if(h)plateWithHole((x1-x0)/2,(y1-y0)/2,z0,z1,h[2],h[0]-X,h[1]-Y,a36,24,p=>[X+p[0],y+Y+p[1],p[2]]);
+  else box(x0,x1,y+y0,y+y1,z0,z1,a36);
+ }
+ roundCornerZ(-45,y-60,10,180,270,z0,z1,a36);roundCornerZ(45,y-60,10,270,360,z0,z1,a36);
+ roundCornerZ(-45,y+60,10,90,180,z0,z1,a36);roundCornerZ(45,y+60,10,0,90,z0,z1,a36);
+ // Separate 90-mm motor flange plate fills the adapter opening.
+ const fxs=[-45,-35,-25,25,35,45],fys=[-45,-35,-25,25,35,45],fholes=[[0,0,15],[-30,-30,4.5],[30,-30,4.5],[-30,30,4.5],[30,30,4.5]],fc=[.49,.55,.59];
+ for(let i=0;i<fxs.length-1;i++)for(let j=0;j<fys.length-1;j++){
+  const x0=fxs[i],x1=fxs[i+1],y0=fys[j],y1=fys[j+1],h=fholes.find(q=>q[0]>x0&&q[0]<x1&&q[1]>y0&&q[1]<y1),X=(x0+x1)/2,Y=(y0+y1)/2;
+  if(h)plateWithHole((x1-x0)/2,(y1-y0)/2,z0,z1,h[2],h[0]-X,h[1]-Y,fc,24,p=>[X+p[0],y+Y+p[1],p[2]]);
+  else box(x0,x1,y+y0,y+y1,z0,z1,fc);
+ }
+ // Four short motor bolts are separate from the outboard stand-off bolts.
+ for(const x of [-C.panMotorBoltOffset,C.panMotorBoltOffset])for(const dy of [-C.panMotorBoltOffset,C.panMotorBoltOffset]){
+  cylinderZ(6.5,z0-2,z0,[.60,.64,.67],x,y+dy,12);
+  cylinderZ(4,z0-2,z1+5,[.60,.64,.67],x,y+dy,12);
+ }
+ const standBottom=z1,standTop=C.deckZ+C.deckT;
+ for(const x of [-C.panMotorBoltOffset,C.panMotorBoltOffset])for(const dy of [-C.panStandoffOffset,C.panStandoffOffset]){
+  ringZ(7,4,standBottom,standTop,[.62,.66,.69],16,x,y+dy);
+  cylinderZ(3.75,z0-2,standTop+C.panPlateT+7,[.62,.66,.69],x,y+dy,12);
+  cylinderZ(7,z0-2,z0,[.68,.71,.73],x,y+dy,16);
+  cylinderZ(7.5,standTop+C.panPlateT,standTop+C.panPlateT+2,[.68,.71,.73],x,y+dy,16);
+  cylinderZ(6,standTop+C.panPlateT+2,standTop+C.panPlateT+6,[.55,.59,.62],x,y+dy,6);
+ }
+}
+function drawPanDrive(){
+ if(!showPanDrive||!showMotorPlates)return;
+ const y=C.panMotorY,zTop=C.panMotorGearboxTopZ,zBottom=C.panMotorGearboxBottomZ;
+ const steel=[.35,.38,.42];
+ cylinderZ(C.panMotorGearboxD/2,zBottom,zTop,[.39,.45,.49],0,y,40);
+ cylinderX(C.panMotorBodyD/2,C.panMotorBodyX0,C.panMotorBodyX1,y,C.panMotorMidZ,[.28,.34,.39],36);
+ cylinderX((C.panMotorBodyD+2)/2,C.panMotorBodyX0-5,C.panMotorBodyX0+3,y,C.panMotorMidZ,[.21,.27,.31],36);
+ cylinderZ(C.motorShaftR,C.panChainZ+C.tiltSprocketT/2,zBottom,[.76,.79,.81],0,y,24);
+ ringZ(C.motorPinionRootR,C.motorShaftR,C.panChainZ-C.tiltSprocketT/2,C.panChainZ+C.tiltSprocketT/2,steel,32,0,y);
+ ringZ(12,C.motorShaftR,C.panChainZ-C.tiltSprocketT/2-1,C.panChainZ+C.tiltSprocketT/2+1,steel,24,0,y);
+ for(let i=0;i<C.motorPinionTeeth;i++){
+  const a=i*2*Math.PI/C.motorPinionTeeth,c=Math.cos(a),s=Math.sin(a);
+  const T=p=>[c*p[0]-s*p[1],s*p[0]+c*p[1]+y,p[2]];
+  box(-2.2,2.2,C.motorPinionRootR-.5,C.motorPinionTipR,C.panChainZ-C.tiltSprocketT/2,C.panChainZ+C.tiltSprocketT/2,steel,T);
+ }
+ panChainLoop();
+}
 function tangentHousingX(ro,ri,x0,x1,y,z,baseTop,color,n=48,T=(p)=>p){
  const tau=2*Math.PI,corner=[Math.atan2(baseTop-z,ro),Math.atan2(baseTop-z,-ro)].map(a=>(a+tau)%tau);
  const angles=Array.from({length:n},(_,i)=>tau*i/n).concat(corner).sort((a,b)=>a-b).filter((a,i,v)=>i===0||a-v[i-1]>1e-8);
@@ -253,10 +367,24 @@ function gussetPath(){
  p.push([gx,C.returnEndY,1,0]);return p;
 }
 function moving(p){const a=(180-angle)*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return[p[0],p[1]*c-p[2]*s,C.shaftZ+p[1]*s+p[2]*c]}
+function buildTiltMotorPlate(){
+ const zc=C.tiltMotorZ,zHalf=90,padHalf=60,outline=[[-185,zc-padHalf],[-185,zc+padHalf],[-75,zc+padHalf],[-75,zc+zHalf],[55,zc+zHalf],[55,zc-zHalf],[-75,zc-zHalf],[-75,zc-padHalf]],faceX=C.riserOuter+C.tiltPlateT+.02,cut=[.15,.18,.21];
+ prismX(roundedPolygon(outline,6.35),C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
+ const rowOffset=((C.gussetTop-45)-(C.gussetBottom+35))/2;
+ for(const side of [-1,1])for(const sign of [-1,1])capsulePrismYz(side*C.boltY,zc+sign*rowOffset,42,11,faceX,faceX+.02,cut);
+ cylinderX(15,faceX,faceX+.02,C.tiltMotorY,zc,cut,32);
+ for(const y of [C.tiltMotorY-30,C.tiltMotorY+30])for(const z of [zc-30,zc+30])cylinderX(4.5,faceX,faceX+.02,y,z,cut,16);
+}
 function build(){faces.length=0;panScope=false;
+ if(tiltPlateOnly){buildTiltMotorPlate();return}
  box(-700,700,-700,700,-C.postH-20,-C.postH,[.38,.49,.31]);
- box(-70,70,-70,70,-C.postH,0,[.64,.43,.25]);
- box(-55,55,-55,55,0,8,[.38,.45,.51]);cylinderZ(25.4,8,93.6,[.58,.65,.69]);
+ box(-70,70,-70,70,-C.postH,-C.spindleRecess,[.64,.43,.25]);
+ box(-70,-C.spindleFlangeSize/2,-70,70,-C.spindleRecess,0,[.64,.43,.25]);
+ box(C.spindleFlangeSize/2,70,-70,70,-C.spindleRecess,0,[.64,.43,.25]);
+ box(-C.spindleFlangeSize/2,C.spindleFlangeSize/2,-70,-C.spindleFlangeSize/2,-C.spindleRecess,0,[.64,.43,.25]);
+ box(-C.spindleFlangeSize/2,C.spindleFlangeSize/2,C.spindleFlangeSize/2,70,-C.spindleRecess,0,[.64,.43,.25]);
+ box(-C.spindleFlangeSize/2,C.spindleFlangeSize/2,-C.spindleFlangeSize/2,C.spindleFlangeSize/2,-C.spindleFlangeT,0,[.38,.45,.51]);
+ cylinderZ(25.4,0,85.6,[.58,.65,.69]);
  if(showPostSprocket){
   const steel=[.23,.27,.30],z0=C.sprocketBottom,z1=z0+C.sprocketT;
   ringZ(C.sprocketRootR,C.sprocketInnerR,z0,z1,steel,72);
@@ -264,7 +392,7 @@ function build(){faces.length=0;panScope=false;
    box(-2.8,2.8,C.sprocketRootR-.5,C.sprocketTipR,z0,z1,steel,T);
   }
   for(let x of [-C.spindleBoltOffset,C.spindleBoltOffset])for(let y of [-C.spindleBoltOffset,C.spindleBoltOffset]){
-   cylinderZ(5,0,z1+2,[.67,.70,.72],x,y,12);cylinderZ(9,z1,z1+6,[.54,.57,.59],x,y,6);
+   cylinderZ(5,-C.spindleRecess,z1+2,[.67,.70,.72],x,y,12);cylinderZ(9,z1,z1+6,[.54,.57,.59],x,y,6);
   }
  }
  panScope=true;
@@ -274,17 +402,20 @@ function build(){faces.length=0;panScope=false;
  ringZ(C.hubR+C.hubOverlap,37.5,C.deckZ,C.deckZ+C.deckT,a36);
  if(showMotorPlates){
   ringZ(C.hubR+C.hubOverlap,37.5,C.deckZ+C.deckT,C.deckZ+C.deckT+C.panPlateT,a36);
-  const xs=[-70,-55,-50,-20,20,50,55,70],ys=[-225,-210,-195,-155,-120,-70],z0=C.deckZ+C.deckT+.08,z1=z0+C.panPlateT;
-  const holes=[[0,-175,15],[-30,-205,4.5],[30,-205,4.5],[-30,-145,4.5],[30,-145,4.5]];
+  const xs=[-55,-45,-40,-35,-20,20,35,40,45,55],ys=[-290,-280,-270,-250,-225,-185,-150,-140,-70],z0=C.deckZ+C.deckT+.08,z1=z0+C.panPlateT;
+  const holes=[[0,-205,15]];
   for(let i=0;i<xs.length-1;i++)for(let j=0;j<ys.length-1;j++){
    if(j===0&&(i===0||i===xs.length-2))continue;
    const x0=xs[i],x1=xs[i+1],y0=ys[j],y1=ys[j+1],h=holes.find(q=>q[0]>x0&&q[0]<x1&&q[1]>y0&&q[1]<y1),xc=(x0+x1)/2,yc=(y0+y1)/2;
    if(h)plateWithHole((x1-x0)/2,(y1-y0)/2,z0,z1,h[2],h[0]-xc,h[1]-yc,a36,24,p=>[xc+p[0],yc+p[1],p[2]]);
    else box(x0,x1,y0,y1,z0,z1,a36);
   }
-  roundCornerZ(-55,-210,15,180,270,z0,z1,a36);
-  roundCornerZ(55,-210,15,270,360,z0,z1,a36);
+  roundCornerZ(-40,-275,15,180,270,z0,z1,a36);
+  roundCornerZ(40,-275,15,270,360,z0,z1,a36);
+  for(const x of [-C.panMotorBoltOffset,C.panMotorBoltOffset])for(const dy of [-C.panStandoffOffset,C.panStandoffOffset])capsuleFaceY(x,C.panMotorY+dy,C.panSlotLength,C.panSlotWidth,z1+.04,[.15,.18,.21]);
  }
+ drawPanMounting();
+ drawPanDrive();
  if(showHub)for(let i=0;i<5;i++){let t=(C.hubStudPhaseDeg+i*72)*Math.PI/180,x=C.studR*Math.cos(t),y=C.studR*Math.sin(t),stack=showMotorPlates?C.panPlateT:0;cylinderZ(5,C.deckZ,C.deckZ+C.deckT+stack+14,[.70,.73,.74],x,y,12);cylinderZ(9,C.deckZ+C.deckT+stack,C.deckZ+C.deckT+stack+12,nut,x,y,6)}
  const flapPath=mainFlapPath();
  for(let sign of [-1,1]){
@@ -298,41 +429,26 @@ function build(){faces.length=0;panScope=false;
   }
  }
  if(showMotorPlates){
-  // Motor pad and four-bolt riser pad join through a tapered section.
-  function platePart(ys,zs,holes){for(let i=0;i<ys.length-1;i++)for(let j=0;j<zs.length-1;j++){
-   const y0=ys[i],y1=ys[i+1],z0=zs[j],z1=zs[j+1],h=holes.find(q=>q[0]>y0&&q[0]<y1&&q[1]>z0&&q[1]<z1),yc=(y0+y1)/2,zc=(z0+z1)/2;
-   if(h)plateWithHole((y1-y0)/2,(z1-z0)/2,0,C.tiltPlateT,h[2],h[0]-yc,h[1]-zc,a36,24,p=>[C.riserOuter+p[2],yc+p[0],zc+p[1]]);
-   else box(y0,y1,z0,z1,0,C.tiltPlateT,a36,p=>[C.riserOuter+p[2],p[0],p[1]]);
-  }}
-  platePart([-170,-150,-110,-85],[190,230,270,310],[[-130,C.tiltMotorZ,15],[-160,C.tiltMotorZ-30,4.5],[-160,C.tiltMotorZ+30,4.5],[-100,C.tiltMotorZ-30,4.5],[-100,C.tiltMotorZ+30,4.5]]);
-  box(C.riserOuter,C.riserOuter+C.tiltPlateT,-185,-170,205,295,a36);
-  roundCornerX(-170,205,15,180,270,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
-  roundCornerX(-170,295,15,90,180,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
-  prismX([[-85,190],[-85,310],[-55,315],[-55,175]],C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
-  platePart([-55,-15,15,45],[175,245,315],[-1,1].flatMap(s=>[C.gussetBottom+35,C.gussetTop-45].map(z=>[s*C.boltY,z,5])));
-  box(C.riserOuter,C.riserOuter+C.tiltPlateT,45,60,190,300,a36);
-  roundCornerX(45,190,15,270,360,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
-  roundCornerX(45,300,15,0,90,C.riserOuter,C.riserOuter+C.tiltPlateT,a36);
+  buildTiltMotorPlate();
  }
  if(showTiltDrive&&showMotorPlates){
-  const fx=C.motorFlangeX,yc=C.tiltMotorY,zc=C.tiltMotorZ,caseColor=[.39,.45,.49],flangeColor=[.31,.36,.40];
+  const fx=C.motorFlangeX,yc=C.tiltMotorY,zc=C.tiltMotorZ,flangeX0=fx-C.motorFlangeT,caseColor=[.39,.45,.49],flangeColor=[.49,.55,.59];
   // The gearbox mounts behind the plate; its output passes outward through the center opening.
-  ringX(14,C.motorShaftR+.5,fx-1,fx+C.tiltPlateT+2,yc,zc,flangeColor,32);
-  for(let yi=-1;yi<=1;yi++)for(let zi=-1;zi<=1;zi++){
-   const y=yc+30*yi,z=zc+30*zi;
-   if(yi===0&&zi===0)plateWithHole(15,15,-10,0,C.motorShaftR+.5,0,0,flangeColor,24,p=>[fx+p[2],y+p[0],z+p[1]]);
-   else if(yi&&zi)plateWithHole(15,15,-10,0,4.5,0,0,flangeColor,24,p=>[fx+p[2],y+p[0],z+p[1]]);
-   else box(fx-10,fx,y-15,y+15,z-15,z+15,flangeColor);
+  const grid=[-45,-35,-25,25,35,45],holes=[[0,0,15],[-30,-30,4.5],[30,-30,4.5],[-30,30,4.5],[30,30,4.5]];
+  for(let i=0;i<grid.length-1;i++)for(let j=0;j<grid.length-1;j++){
+   const y0=grid[i],y1=grid[i+1],z0=grid[j],z1=grid[j+1],Y=(y0+y1)/2,Z=(z0+z1)/2,h=holes.find(q=>q[0]>y0&&q[0]<y1&&q[1]>z0&&q[1]<z1),T=p=>[p[2],yc+Y+p[0],zc+Z+p[1]];
+   if(h)plateWithHole((y1-y0)/2,(z1-z0)/2,flangeX0,fx,h[2],h[0]-Y,h[1]-Z,flangeColor,24,T);
+   else box(flangeX0,fx,yc+y0,yc+y1,zc+z0,zc+z1,flangeColor);
   }
   for(let y of [yc-30,yc+30])for(let z of [zc-30,zc+30]){
-   cylinderX(4.5,fx-10,fx+C.tiltPlateT,y,z,[.70,.72,.74],12);
+   cylinderX(4.5,flangeX0-2,fx+C.tiltPlateT,y,z,[.70,.72,.74],12);
    cylinderX(8,fx+C.tiltPlateT,fx+C.tiltPlateT+5,y,z,[.66,.68,.70],12);
   }
-  cylinderX(26,C.motorGearboxX1,fx-10,yc,zc,caseColor,32);
+  cylinderX(26,C.motorGearboxX1,flangeX0,yc,zc,caseColor,32);
   cylinderX(35,C.motorGearboxX0,C.motorGearboxX1,yc,zc,caseColor,40);
   cylinderZ(28,75,220,[.28,.34,.39],158,yc,36);
   cylinderZ(29,70,83,[.21,.27,.31],158,yc,36);
-  cylinderX(23,C.motorGearboxX1,fx-10,yc,zc,[.32,.37,.41],32);
+  cylinderX(23,C.motorGearboxX1,flangeX0,yc,zc,[.32,.37,.41],32);
   cylinderX(C.motorShaftR,C.motorGearboxX1,C.tiltSprocketX+15,yc,zc,[.76,.79,.81],24);
   const x=C.tiltSprocketX,t=C.tiltSprocketT,steel=[.35,.38,.42];
   ringX(C.motorPinionRootR,C.motorShaftR,x-t/2,x+t/2,yc,zc,steel,32);
@@ -435,7 +551,7 @@ function draw(){let d=Math.min(devicePixelRatio||1,2),w=canvas.clientWidth,h=can
  let fs=faces.map(f=>({p:f.p.map(rotate),color:f.color})),mnx=Infinity,mxx=-Infinity,mny=Infinity,mxy=-Infinity;
  for(let f of fs)for(let p of f.p){mnx=Math.min(mnx,p[0]);mxx=Math.max(mxx,p[0]);mny=Math.min(mny,p[1]);mxy=Math.max(mxy,p[1])}
  let scale=detail?.82*Math.min(w,h)/detailSpan*zoom:.88*Math.min(w/Math.max(1,mxx-mnx),h/Math.max(1,mxy-mny))*zoom;
- let focal=rotate([0,0,detailZ]),cx=detail?focal[0]:(mnx+mxx)/2,cy=detail?focal[1]:(mny+mxy)/2;viewInfo={scale,cx,cy};
+ let focal=rotate([0,detailY,detailZ]),cx=detail?focal[0]:(mnx+mxx)/2,cy=detail?focal[1]:(mny+mxy)/2;viewInfo={scale,cx,cy};
  if(gl){
   let minZ=Infinity,maxZ=-Infinity;for(const f of fs)for(const p of f.p){minZ=Math.min(minZ,p[2]);maxZ=Math.max(maxZ,p[2])}
   const depthSpan=Math.max(1,maxZ-minZ),data=new Float32Array(fs.length*18);let k=0;
@@ -456,15 +572,19 @@ function draw(){let d=Math.min(devicePixelRatio||1,2),w=canvas.clientWidth,h=can
  document.getElementById('zoom-value').value=Math.round(zoom*100)+'%';document.getElementById('angle-value').value=angle+'°';document.getElementById('azimuth-value').value=azimuth+'°';
  document.getElementById('winter').setAttribute('aria-pressed',String(angle===71));document.getElementById('wind').setAttribute('aria-pressed',String(angle===0));
 }
-function setview(y,p,det,z=150,span=850){yaw=y;pitch=p;detail=det;detailZ=z;detailSpan=span;pan=[0,0];draw()}
-document.getElementById('whole').onclick=()=>setview(2.55,-.65,false);
-document.getElementById('close').onclick=()=>setview(.58,-.75,true,70,430);
-document.getElementById('bracket').onclick=()=>setview(.65,-.7,true,250,1000);
-document.getElementById('tilt-drive-view').onclick=()=>setview(Math.PI/2,-Math.PI/2,true,260,600);
-document.getElementById('mast-view').onclick=()=>setview(.8,-.55,true,950,2200);
-document.getElementById('side').onclick=()=>setview(Math.PI/2,-Math.PI/2,false);
-document.getElementById('top').onclick=()=>setview(0,0,false);
-document.getElementById('fit').onclick=()=>{zoom=1;detail=false;pan=[0,0];document.getElementById('zoom').value=100;draw()};
+function setview(y,p,det,z=150,span=850,yCenter=0){yaw=y;pitch=p;detail=det;detailY=yCenter;detailZ=z;detailSpan=span;pan=[0,0];draw()}
+function assemblyView(y,p,det,z=150,span=850,yCenter=0){tiltPlateOnly=false;setview(y,p,det,z,span,yCenter)}
+document.getElementById('whole').onclick=()=>assemblyView(2.55,-.65,false);
+document.getElementById('close').onclick=()=>assemblyView(.58,-.75,true,70,430);
+document.getElementById('bracket').onclick=()=>assemblyView(.65,-.7,true,250,1000);
+document.getElementById('tilt-drive-view').onclick=()=>assemblyView(Math.PI/2,-Math.PI/2,true,260,600);
+document.getElementById('tilt-plate-view').onclick=()=>{tiltPlateOnly=true;setview(Math.PI/2,-Math.PI/2,true,C.tiltMotorZ,260,-65)};
+document.getElementById('pan-drive-view').onclick=()=>assemblyView(-.65,-.75,true,45,520);
+document.getElementById('pan-drive-under-view').onclick=()=>assemblyView(-.65,Math.PI,true,45,520);
+document.getElementById('mast-view').onclick=()=>assemblyView(.8,-.55,true,950,2200);
+document.getElementById('side').onclick=()=>assemblyView(Math.PI/2,-Math.PI/2,false);
+document.getElementById('top').onclick=()=>assemblyView(0,0,false);
+document.getElementById('fit').onclick=()=>{tiltPlateOnly=false;zoom=1;detail=false;pan=[0,0];document.getElementById('zoom').value=100;draw()};
 document.getElementById('winter').onclick=()=>{angle=71;document.getElementById('angle').value=71;draw()};
 document.getElementById('wind').onclick=()=>{angle=0;document.getElementById('angle').value=0;draw()};
 document.getElementById('pan-mode').onclick=e=>{panMode=!panMode;e.currentTarget.setAttribute('aria-pressed',String(panMode));canvas.style.cursor=panMode?'grab':'grab'};
@@ -476,13 +596,14 @@ document.getElementById('mast-plates').onchange=e=>{showMastPlates=e.target.chec
 document.getElementById('mast').onchange=e=>{showMast=e.target.checked;draw()};
 document.getElementById('motor-plates').onchange=e=>{showMotorPlates=e.target.checked;draw()};
 document.getElementById('post-sprocket').onchange=e=>{showPostSprocket=e.target.checked;draw()};
+document.getElementById('pan-drive').onchange=e=>{showPanDrive=e.target.checked;draw()};
 document.getElementById('tilt-sprocket').onchange=e=>{showTiltSprocket=e.target.checked;draw()};
 document.getElementById('tilt-drive').onchange=e=>{showTiltDrive=e.target.checked;draw()};
 document.getElementById('angle').oninput=e=>{angle=+e.target.value;draw()};
 document.getElementById('azimuth').oninput=e=>{azimuth=Math.max(-90,Math.min(90,+e.target.value));draw()};
 document.getElementById('zoom').oninput=e=>{zoom=+e.target.value/100;draw()};
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,pan:panMode||e.shiftKey||e.button===2};canvas.style.cursor='grabbing'});
-canvas.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;if(drag.pan){pan[0]+=dx;pan[1]+=dy}else{yaw+=dx*.007;pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch+(invertOrbitPitch?dy:-dy)*.007))}draw()});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;let dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;if(drag.pan){pan[0]+=dx;pan[1]+=dy}else{yaw+=dx*.007;pitch=Math.max(-Math.PI,Math.min(Math.PI,pitch+(invertOrbitPitch?dy:-dy)*.007))}draw()});
 canvas.addEventListener('pointerup',()=>{drag=null;canvas.style.cursor='grab'});canvas.addEventListener('pointercancel',()=>{drag=null});canvas.addEventListener('contextmenu',e=>e.preventDefault());
 canvas.addEventListener('wheel',e=>{e.preventDefault();let r=canvas.getBoundingClientRect(),px=e.clientX-r.left-r.width/2,py=e.clientY-r.top-r.height/2,old=zoom;zoom=Math.max(.25,Math.min(5,zoom*Math.exp(-e.deltaY*.001)));pan[0]=px-(px-pan[0])*zoom/old;pan[1]=py-(py-pan[1])*zoom/old;document.getElementById('zoom').value=Math.round(zoom*100);draw()},{passive:false});
 canvas.addEventListener('dblclick',e=>{let r=canvas.getBoundingClientRect();pan[0]+=r.width/2-(e.clientX-r.left);pan[1]+=r.height/2-(e.clientY-r.top);draw()});

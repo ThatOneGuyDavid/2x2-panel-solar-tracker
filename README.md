@@ -22,15 +22,21 @@ The main pivot is a trailer hub and upward-facing spindle mounted in a ground-se
 
 A provisional right-angle geared motor attaches to the inside face of one bracket riser. Its body hangs downward and its output shaft passes outward through the motor plate. A 12-tooth motor sprocket drives a 28-tooth sprocket on the tilt shaft with a bicycle-chain loop. The preview places that drive between one support bearing and the moving frame clamp.
 
-A separate large sprocket is shown at the fixed spindle flange for a future pan drive. The pan preview is limited to 180° total travel.
+A separate 72-tooth sprocket proxy is shown at the fixed spindle flange for the pan drive. The flange sits 8 mm down in a modeled post recess; the sprocket, pan pinion and chain share the lowered plane. The preview is limited to 180° total pan travel.
 
 ![Current tilt bracket and right-angle gearmotor render](images/tilt-drive-detail.png)
 
 ## Interactive model
 
-[Open the interactive four-panel assembly viewer](assembly-viewer.html). Use **Winter 71°**, **Wind 0°**, or the tilt slider to change the panel position. The View list controls visible assemblies, and the bill of materials lists modeled parts and quantities. The **Tilt drive** view focuses on the provisional motor and chain arrangement.
+[Open the interactive four-panel assembly viewer](assembly-viewer.html). Use **Winter 71°**, **Wind 0°**, or the tilt slider to change the panel position. The View list controls visible assemblies, and the bill of materials lists modeled parts and quantities. Use **Pan drive** or **Tilt drive** to inspect either provisional motor and chain arrangement; **Tilt plate only** isolates the tilt plate.
 
 The accompanying [OpenSCAD shape study](azimuth-post-spindle.scad) is editable. Dimensions and simplified geometry are recorded as design inputs, not fabrication drawings.
+
+## Pan drive and drawing updates
+
+The pan and tilt gearmotor proxies use the same gearbox, output flange, body, and shaft dimensions. The pan motor body runs along model −X, with its output aimed down at the fixed sprocket. The pan motor flange sits below the gearbox in the same plane as a separate adapter plate, with four stand-offs attaching it to the hub-mounted plate's Y-oriented tension slots. The modeled clearance from the chain's top edge to the adapter/flange is about 9.35 mm.
+
+[Open the Rev C drive and spindle review sheets](mechanical/REV-C/README.md). They include revised tilt and pan plates, the new pan adapter plate, and a fixed sprocket / spindle flange / post recess interface study. The sprocket teeth are schematic and are not a manufacturable profile. Every sheet is marked **NOT FOR FABRICATION**; dimensions and interfaces remain provisional.
 
 ## Modeled bill of materials
 
@@ -45,6 +51,7 @@ The accompanying [OpenSCAD shape study](azimuth-post-spindle.scad) is editable. 
 | Custom moving shaft clamps and spacers | 2 each | Geometry proxies; fastening not designed |
 | Aluminum square-tube frame | 8 members | 25.4-mm outside-size proxy; wall and joints open |
 | Right-angle tilt gearmotor | 1 | Placeholder; no motor selected |
+| Right-angle pan gearmotor and adapter | 1 each | Proxy motor and new stand-off adapter plate |
 | Tilt sprockets and chain | 2 sprockets, 1 loop | Provisional 12/28 tooth layout; chain details open |
 | Fixed pan sprocket | 1 | Placeholder mounted at spindle flange |
 | Wind mast and bridge plates | 1 mast, 2 plates | Placeholder; mast size and sensor selection open |

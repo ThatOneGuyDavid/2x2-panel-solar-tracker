@@ -23,25 +23,55 @@ deck_thickness = 5/16*25.4;   // working stock: ASTM A36, 5/16 in
 deck_bottom_z = hub_face_z + hub_face_thickness;
 deck_top_z = deck_bottom_z + deck_thickness;
 pan_motor_plate_thickness = 1/4*25.4; // provisional A36, shares five hub studs
-pan_motor_plate_end_y = -225; // north extension; motor footprint still unknown
-pan_motor_plate_half_width = 70;
+pan_motor_plate_end_y = -290; // extension for the four Y-row stand-offs
+pan_motor_plate_half_width = 55;
 motor_plate_corner_radius = 15; // provisional exterior-corner rounding
-pan_motor_center_y = -175;
+tilt_motor_plate_corner_radius = 6.35; // 1/2-in cutter radius for the stepped shoulder
+pan_motor_center_y = -205; // 205 mm chain center distance from fixed sprocket
 pan_motor_hole_diameter = 30; // provisional output clearance
+pan_motor_gearbox_diameter = 70;
+pan_motor_gearbox_height = 60;
+pan_motor_gearbox_top_z = 80;
+pan_motor_body_diameter = 56;
+pan_motor_body_length = 145;
+motor_flange_size = 90;
+motor_flange_thickness = 6.35;
+motor_flange_hole_spacing = 60;
+pan_motor_flange_size = motor_flange_size;
+pan_motor_flange_thickness = motor_flange_thickness;
+pan_adapter_plate_x = 110;
+pan_adapter_plate_size = 140; // length along Y
+pan_adapter_plate_thickness = 6.35;
+pan_adapter_corner_radius = 10;
+pan_motor_bolt_offset = motor_flange_hole_spacing/2;
+pan_standoff_offset = 55; // outside the flange along Y; narrow X columns
+pan_standoff_slot_length = 30;
+pan_standoff_slot_width = 9;
+pan_chain_center_distance = 205;
+tilt_motor_flange_thickness = motor_flange_thickness;
 tilt_motor_plate_thickness = 1/4*25.4;
 tilt_motor_plate_y_min = -185; // north is model -Y
-tilt_motor_plate_y_max = 60; // reaches both gussets' shared riser bolts
-tilt_motor_plate_z_min = 175;
-tilt_motor_plate_z_max = 315;
+tilt_motor_plate_y_step = -75;
+tilt_motor_plate_y_max = 55;
+tilt_motor_plate_half_height = 90;
+tilt_motor_pad_half_height = 60;
 tilt_motor_center_y = -130;
+tilt_motor_mount_slot_length = 42; // symmetric pattern; preserves at least 10 mm travel with existing bolt rows
+tilt_motor_mount_slot_width = 11;
+tilt_motor_mount_slot_row_offset = 48.9; // symmetric half-spacing for existing bolt rows
 bicycle_chain_pitch = 12.7;    // 1/2-in bicycle chain pitch
 fixed_sprocket_teeth = 72;     // enlarged to clear post corners by at least 1 in
 fixed_sprocket_pitch_radius = bicycle_chain_pitch/(2*sin(180/fixed_sprocket_teeth));
 fixed_sprocket_root_radius = fixed_sprocket_pitch_radius-3;
 fixed_sprocket_tip_radius = fixed_sprocket_pitch_radius+4;
 fixed_sprocket_inner_radius = 40; // center relief; remaining web is a solid plate
-fixed_sprocket_bottom_z = 8;   // on top of fixed spindle flange
+fixed_spindle_flange_size = 110;
+fixed_spindle_flange_thickness = 8;
+fixed_spindle_recess_depth = 8;
+fixed_spindle_flange_bottom_z = -fixed_spindle_recess_depth;
+fixed_sprocket_bottom_z = fixed_spindle_flange_bottom_z+fixed_spindle_flange_thickness; // now above the recessed spindle flange
 fixed_sprocket_thickness = 2.2; // tooth-width placeholder until chain width chosen
+pan_chain_center_z = fixed_sprocket_bottom_z + fixed_sprocket_thickness/2;
 tilt_sprocket_teeth = 28;     // provisional tilt drive, 1/2-in chain pitch
 tilt_sprocket_pitch_radius = bicycle_chain_pitch/(2*sin(180/tilt_sprocket_teeth));
 tilt_sprocket_root_radius = tilt_sprocket_pitch_radius-3;
@@ -152,6 +182,7 @@ show_mast_plates = true;
 show_mast = true;
 show_motor_plates = true;
 show_fixed_sprocket = true;
+show_pan_drive = true;
 show_tilt_sprocket = true;
 show_tilt_drive = true;
 a36_color = [0.48,0.58,0.65]; // main bracket and gussets use the same grade
@@ -214,20 +245,29 @@ function lower_mast_plate_path() =
 module ground_and_post() {
     color([0.37,0.48,0.31])
         translate([-700,-700,-post_above_ground-20]) cube([1400,1400,20]);
-    color([0.59,0.38,0.22])
+    color([0.59,0.38,0.22]) difference() {
         translate([-post_width/2,-post_width/2,-post_above_ground])
             cube([post_width,post_width,post_above_ground]);
+        translate([-fixed_spindle_flange_size/2,-fixed_spindle_flange_size/2,
+                   -fixed_spindle_recess_depth-0.01])
+            cube([fixed_spindle_flange_size,fixed_spindle_flange_size,
+                  fixed_spindle_recess_depth+0.02]);
+    }
 }
 
 module fixed_spindle() {
     color([0.38,0.44,0.48]) {
         difference() {
-            translate([-55,-55,0]) cube([110,110,8]);
+            translate([-fixed_spindle_flange_size/2,-fixed_spindle_flange_size/2,
+                       fixed_spindle_flange_bottom_z])
+                cube([fixed_spindle_flange_size,fixed_spindle_flange_size,
+                      fixed_spindle_flange_thickness]);
             for(x=[-spindle_flange_bolt_offset,spindle_flange_bolt_offset],
                 y=[-spindle_flange_bolt_offset,spindle_flange_bolt_offset])
                 translate([x,y,-1]) cylinder(h=10,d=11);
         }
-        translate([0,0,8]) cylinder(h=85.6,d1=50.8,d2=27);
+        translate([0,0,fixed_spindle_flange_bottom_z+fixed_spindle_flange_thickness])
+            cylinder(h=85.6,d1=50.8,d2=27);
     }
 }
 
@@ -257,7 +297,8 @@ module fixed_spindle_sprocket() {
         for(x=[-spindle_flange_bolt_offset,spindle_flange_bolt_offset],
             y=[-spindle_flange_bolt_offset,spindle_flange_bolt_offset]) {
             color([0.67,0.70,0.72])
-                translate([x,y,0]) cylinder(h=fixed_sprocket_bottom_z+fixed_sprocket_thickness+2,d=10);
+            translate([x,y,fixed_spindle_flange_bottom_z])
+                cylinder(h=fixed_sprocket_bottom_z+fixed_sprocket_thickness+2-fixed_spindle_flange_bottom_z,d=10);
             color([0.54,0.57,0.59])
                 translate([x,y,fixed_sprocket_bottom_z+fixed_sprocket_thickness])
                     cylinder(h=6,d=18,$fn=6);
@@ -321,6 +362,12 @@ module raised_bracket() {
     }
 }
 
+module pan_standoff_slot_y(x,y,z,h) {
+    hull() for(dy=[-(pan_standoff_slot_length-pan_standoff_slot_width)/2,
+                    (pan_standoff_slot_length-pan_standoff_slot_width)/2])
+        translate([x,y+dy,z]) cylinder(h=h,d=pan_standoff_slot_width);
+}
+
 module pan_motor_mount_plate() {
     // Bolts on top of the main bracket with the same five hub studs.
     if(show_motor_plates) color(a36_color)
@@ -342,24 +389,170 @@ module pan_motor_mount_plate() {
                     cylinder(h=pan_motor_plate_thickness+2,d=14);
             translate([0,pan_motor_center_y,deck_top_z-1])
                 cylinder(h=pan_motor_plate_thickness+2,d=pan_motor_hole_diameter);
-            for(x=[-30,30],y=[pan_motor_center_y-30,pan_motor_center_y+30])
-                translate([x,y,deck_top_z-1])
-                    cylinder(h=pan_motor_plate_thickness+2,d=9);
+            for(x=[-pan_motor_bolt_offset,pan_motor_bolt_offset],
+                y=[pan_motor_center_y-pan_standoff_offset,
+                   pan_motor_center_y+pan_standoff_offset])
+                pan_standoff_slot_y(x,y,deck_top_z-1,pan_motor_plate_thickness+2);
         }
 }
 
+module pan_motor_adapter_plate() {
+    // Narrow adapter on the output face, with separate motor and stand-off
+    // patterns. Stand-offs sit just outboard, in the motor bolts' Y rows.
+    if(show_motor_plates) color(a36_color)
+        difference() {
+            translate([0,pan_motor_center_y,
+                       pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_adapter_plate_thickness])
+                linear_extrude(height=pan_adapter_plate_thickness)
+                    hull() for(x=[-pan_adapter_plate_x/2+pan_adapter_corner_radius,
+                                   pan_adapter_plate_x/2-pan_adapter_corner_radius],
+                               y=[-pan_adapter_plate_size/2+pan_adapter_corner_radius,
+                                   pan_adapter_plate_size/2-pan_adapter_corner_radius])
+                        translate([x,y]) circle(r=pan_adapter_corner_radius);
+            translate([-pan_motor_flange_size/2-1,
+                       pan_motor_center_y-pan_motor_flange_size/2-1,
+                       pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_adapter_plate_thickness-1])
+                cube([pan_motor_flange_size+2,pan_motor_flange_size+2,
+                      pan_adapter_plate_thickness+2]);
+            for(x=[-pan_motor_bolt_offset,pan_motor_bolt_offset],
+                y=[pan_motor_center_y-pan_standoff_offset,
+                   pan_motor_center_y+pan_standoff_offset])
+                translate([x,y,pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_adapter_plate_thickness-1])
+                    cylinder(h=pan_adapter_plate_thickness+2,d=9);
+        }
+}
+
+module pan_motor_flange_plate() {
+    // Motor's own 90-mm output-face flange, separate from the narrow adapter.
+    if(show_motor_plates) color([0.49,0.55,0.59])
+        difference() {
+            translate([-pan_motor_flange_size/2,
+                       pan_motor_center_y-pan_motor_flange_size/2,
+                       pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_motor_flange_thickness])
+                cube([pan_motor_flange_size,pan_motor_flange_size,pan_motor_flange_thickness]);
+            translate([0,pan_motor_center_y,
+                       pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_motor_flange_thickness-1])
+                cylinder(h=pan_motor_flange_thickness+2,d=pan_motor_hole_diameter);
+            for(x=[-pan_motor_bolt_offset,pan_motor_bolt_offset],
+                y=[pan_motor_center_y-pan_motor_bolt_offset,
+                   pan_motor_center_y+pan_motor_bolt_offset])
+                translate([x,y,pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_motor_flange_thickness-1])
+                    cylinder(h=pan_motor_flange_thickness+2,d=9);
+        }
+}
+
+module pan_motor_flange_bolts() {
+    if(show_pan_drive && show_motor_plates)
+        color([0.60,0.64,0.67])
+            for(x=[-pan_motor_bolt_offset,pan_motor_bolt_offset],
+                y=[pan_motor_center_y-pan_motor_bolt_offset,
+                   pan_motor_center_y+pan_motor_bolt_offset]) {
+                translate([x,y,pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_motor_flange_thickness-2])
+                    cylinder(h=2,d=13);
+                translate([x,y,pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_motor_flange_thickness-2])
+                    cylinder(h=pan_motor_flange_thickness+8,d=8);
+            }
+}
+
+module pan_motor_standoffs() {
+    if(show_pan_drive && show_motor_plates)
+        color([0.62,0.66,0.69])
+            for(x=[-pan_motor_bolt_offset,pan_motor_bolt_offset],
+                y=[pan_motor_center_y-pan_standoff_offset,
+                   pan_motor_center_y+pan_standoff_offset]) {
+                translate([x,y,pan_motor_gearbox_top_z-pan_motor_gearbox_height])
+                    difference() {
+                        cylinder(h=deck_top_z-(pan_motor_gearbox_top_z-pan_motor_gearbox_height),d=14);
+                        translate([0,0,-1]) cylinder(h=deck_top_z-(pan_motor_gearbox_top_z-pan_motor_gearbox_height)+2,d=8);
+                    }
+                translate([x,y,pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_adapter_plate_thickness-2])
+                    cylinder(h=deck_top_z-(pan_motor_gearbox_top_z-pan_motor_gearbox_height)+pan_motor_plate_thickness+pan_adapter_plate_thickness+9,d=7.5);
+                translate([x,y,pan_motor_gearbox_top_z-pan_motor_gearbox_height-pan_adapter_plate_thickness-2])
+                    cylinder(h=2,d=14);
+                translate([x,y,deck_top_z+pan_motor_plate_thickness])
+                    cylinder(h=2.5,d=15);
+                translate([x,y,deck_top_z+pan_motor_plate_thickness+2.5])
+                    cylinder(h=5,d=12,$fn=6);
+            }
+}
+
+module pan_drive_chain_hull(radial_offset,axial_width) {
+    hull() {
+        translate([0,0,pan_chain_center_z-axial_width/2])
+            cylinder(h=axial_width,r=fixed_sprocket_pitch_radius+radial_offset);
+        translate([0,-pan_chain_center_distance,pan_chain_center_z-axial_width/2])
+            cylinder(h=axial_width,r=motor_pinion_pitch_radius+radial_offset);
+    }
+}
+
+module pan_drive_chain() {
+    if(show_pan_drive && show_motor_plates)
+        color([0.12,0.14,0.16]) difference() {
+            pan_drive_chain_hull(tilt_chain_radial_half,tilt_chain_width);
+            pan_drive_chain_hull(-tilt_chain_radial_half,tilt_chain_width+2);
+        }
+}
+
+module pan_gearmotor() {
+    // Same right-angle gearmotor proxy as the tilt drive, mounted beneath the
+    // pan plate: its output points down and its motor body extends along -X.
+    if(show_pan_drive && show_motor_plates) {
+        pan_motor_gearbox_bottom_z = pan_motor_gearbox_top_z-pan_motor_gearbox_height;
+        pan_motor_mid_z = (pan_motor_gearbox_top_z+pan_motor_gearbox_bottom_z)/2;
+        pan_motor_body_x0 = -35-pan_motor_body_length;
+        color([0.39,0.45,0.49])
+            translate([0,pan_motor_center_y,pan_motor_gearbox_bottom_z])
+                cylinder(h=pan_motor_gearbox_height,d=pan_motor_gearbox_diameter);
+        color([0.28,0.34,0.39])
+            translate([pan_motor_body_x0,pan_motor_center_y,pan_motor_mid_z])
+                rotate([0,90,0]) cylinder(h=pan_motor_body_length,d=pan_motor_body_diameter);
+        color([0.21,0.27,0.31])
+            translate([pan_motor_body_x0-5,pan_motor_center_y,pan_motor_mid_z])
+                rotate([0,90,0]) cylinder(h=8,d=pan_motor_body_diameter+2);
+        color([0.76,0.79,0.81])
+            translate([0,pan_motor_center_y,pan_chain_center_z+tilt_sprocket_thickness/2])
+                cylinder(h=pan_motor_gearbox_bottom_z-(pan_chain_center_z+tilt_sprocket_thickness/2),
+                         d=motor_output_diameter);
+    }
+}
+
+module pan_motor_output_sprocket() {
+    if(show_pan_drive && show_motor_plates)
+        color([0.35,0.38,0.42])
+            translate([0,-pan_chain_center_distance,pan_chain_center_z])
+                difference() {
+                    union() {
+                        cylinder(h=tilt_sprocket_thickness,
+                                 r=motor_pinion_root_radius,center=true);
+                        for(i=[0:motor_pinion_teeth-1])
+                            rotate([0,0,i*360/motor_pinion_teeth])
+                                translate([-2.2,motor_pinion_root_radius-0.5,
+                                           -tilt_sprocket_thickness/2])
+                                    cube([4.4,motor_pinion_tip_radius-motor_pinion_root_radius+0.5,
+                                          tilt_sprocket_thickness]);
+                        cylinder(h=10,r=12,center=true);
+                    }
+                    cylinder(h=12,d=motor_output_diameter,center=true);
+                }
+}
+
 module tilt_motor_mount_plate() {
-    // +X riser; compact north motor pad joins four-bolt riser pad by taper.
-    // Motor output hole is centered between gusset top and bottom.
+    // +X riser; the profile halves mirror across the motor-height X-axis.
+    // A tool-radius step joins the compact motor pad to the taller bracket slot pad.
     if(show_motor_plates) color(a36_color)
         difference() {
             translate([riser_outer_x,0,0]) rotate([0,0,90]) rotate([90,0,0])
                 linear_extrude(height=tilt_motor_plate_thickness)
-                    offset(r=motor_plate_corner_radius)
-                        offset(delta=-motor_plate_corner_radius)
-                            polygon(points=[[-185,190],[-185,310],[-85,310],
-                                            [-55,315],[60,315],[60,175],
-                                            [-55,175],[-85,190]]);
+                    offset(r=tilt_motor_plate_corner_radius)
+                        offset(delta=-tilt_motor_plate_corner_radius)
+                            polygon(points=[[tilt_motor_plate_y_min,tilt_motor_center_z-tilt_motor_pad_half_height],
+                                            [tilt_motor_plate_y_min,tilt_motor_center_z+tilt_motor_pad_half_height],
+                                            [tilt_motor_plate_y_step,tilt_motor_center_z+tilt_motor_pad_half_height],
+                                            [tilt_motor_plate_y_step,tilt_motor_center_z+tilt_motor_plate_half_height],
+                                            [tilt_motor_plate_y_max,tilt_motor_center_z+tilt_motor_plate_half_height],
+                                            [tilt_motor_plate_y_max,tilt_motor_center_z-tilt_motor_plate_half_height],
+                                            [tilt_motor_plate_y_step,tilt_motor_center_z-tilt_motor_plate_half_height],
+                                            [tilt_motor_plate_y_step,tilt_motor_center_z-tilt_motor_pad_half_height]]);
             translate([riser_outer_x-1,tilt_motor_center_y,tilt_motor_center_z])
                 rotate([0,90,0]) cylinder(h=tilt_motor_plate_thickness+2,
                                            d=30);
@@ -368,9 +561,12 @@ module tilt_motor_mount_plate() {
                 translate([riser_outer_x-1,y,z]) rotate([0,90,0])
                     cylinder(h=tilt_motor_plate_thickness+2,d=9);
             for(y=[-gusset_bolt_y,gusset_bolt_y],
-                z=[gusset_bolt_low_z,gusset_bolt_high_z])
-                translate([riser_outer_x-1,y,z]) rotate([0,90,0])
-                    cylinder(h=tilt_motor_plate_thickness+2,d=10);
+                z=[tilt_motor_center_z-tilt_motor_mount_slot_row_offset,
+                   tilt_motor_center_z+tilt_motor_mount_slot_row_offset])
+                hull() for(dz=[-(tilt_motor_mount_slot_length-tilt_motor_mount_slot_width)/2,
+                                (tilt_motor_mount_slot_length-tilt_motor_mount_slot_width)/2])
+                    translate([riser_outer_x-1,y,z+dz]) rotate([0,90,0])
+                        cylinder(h=tilt_motor_plate_thickness+2,d=tilt_motor_mount_slot_width);
         }
 }
 
@@ -569,33 +765,28 @@ module tilt_shaft_sprocket() {
 
 module tilt_gearmotor() {
     // Gearbox bolts behind the +X motor plate on its inside (-X) face.
-    // The body hangs -Z; its output passes through the plate and points +X.
+    // Same Ø90 x 6.35-mm output flange as the pan motor; body hangs -Z.
     if(show_tilt_drive && show_motor_plates) {
-        color([0.31,0.36,0.40]) {
-            translate([motor_mount_flange_x-1,tilt_motor_center_y,tilt_motor_center_z])
-                rotate([0,90,0]) difference() {
-                    cylinder(h=tilt_motor_plate_thickness+3,r=14);
-                    translate([0,0,-1])
-                        cylinder(h=tilt_motor_plate_thickness+5,
-                                 d=motor_output_diameter+1);
-                }
-            difference() {
-                translate([motor_mount_flange_x-10,tilt_motor_center_y-45,
-                           tilt_motor_center_z-45]) cube([10,90,90]);
-                for(y=[tilt_motor_center_y-30,tilt_motor_center_y+30],
-                    z=[tilt_motor_center_z-30,tilt_motor_center_z+30])
-                    translate([motor_mount_flange_x-11,y,z]) rotate([0,90,0])
-                        cylinder(h=12,d=9);
-                translate([motor_mount_flange_x-11,tilt_motor_center_y,
-                           tilt_motor_center_z]) rotate([0,90,0])
-                    cylinder(h=12,d=motor_output_diameter+1);
-            }
+        color([0.49,0.55,0.59]) difference() {
+            translate([motor_mount_flange_x-tilt_motor_flange_thickness,
+                       tilt_motor_center_y-motor_flange_size/2,
+                       tilt_motor_center_z-motor_flange_size/2])
+                cube([tilt_motor_flange_thickness,motor_flange_size,motor_flange_size]);
+            translate([motor_mount_flange_x-tilt_motor_flange_thickness-1,
+                       tilt_motor_center_y,tilt_motor_center_z]) rotate([0,90,0])
+                cylinder(h=tilt_motor_flange_thickness+2,d=30);
+            for(y=[tilt_motor_center_y-motor_flange_hole_spacing/2,
+                   tilt_motor_center_y+motor_flange_hole_spacing/2],
+                z=[tilt_motor_center_z-motor_flange_hole_spacing/2,
+                   tilt_motor_center_z+motor_flange_hole_spacing/2])
+                translate([motor_mount_flange_x-tilt_motor_flange_thickness-1,y,z])
+                    rotate([0,90,0]) cylinder(h=tilt_motor_flange_thickness+2,d=9);
         }
         for(y=[tilt_motor_center_y-30,tilt_motor_center_y+30],
             z=[tilt_motor_center_z-30,tilt_motor_center_z+30]) {
             color([0.70,0.72,0.74])
-                translate([motor_mount_flange_x-10,y,z]) rotate([0,90,0])
-                    cylinder(h=tilt_motor_plate_thickness+10,d=9);
+                translate([motor_mount_flange_x-tilt_motor_flange_thickness-2,y,z]) rotate([0,90,0])
+                    cylinder(h=tilt_motor_flange_thickness+tilt_motor_plate_thickness+7,d=9);
             color([0.66,0.68,0.70])
                 translate([motor_mount_flange_x+tilt_motor_plate_thickness,y,z])
                     rotate([0,90,0]) cylinder(h=5,d=16);
@@ -603,7 +794,7 @@ module tilt_gearmotor() {
         color([0.39,0.45,0.49]) {
             translate([motor_gearbox_x1,tilt_motor_center_y,tilt_motor_center_z])
                 rotate([0,90,0])
-                    cylinder(h=motor_mount_flange_x-10-motor_gearbox_x1,d=52);
+                    cylinder(h=motor_mount_flange_x-tilt_motor_flange_thickness-motor_gearbox_x1,d=52);
             translate([motor_gearbox_x0,tilt_motor_center_y,tilt_motor_center_z])
                 rotate([0,90,0])
                     cylinder(h=motor_gearbox_x1-motor_gearbox_x0,d=70);
@@ -615,7 +806,7 @@ module tilt_gearmotor() {
         color([0.32,0.37,0.41])
             translate([motor_gearbox_x1,tilt_motor_center_y,tilt_motor_center_z])
                 rotate([0,90,0])
-                    cylinder(h=motor_mount_flange_x-10-motor_gearbox_x1,d=46);
+                    cylinder(h=motor_mount_flange_x-tilt_motor_flange_thickness-motor_gearbox_x1,d=46);
         color([0.76,0.79,0.81])
             translate([motor_gearbox_x1,tilt_motor_center_y,tilt_motor_center_z])
                 rotate([0,90,0])
@@ -757,6 +948,13 @@ rotate([0,0,max(pan_min,min(pan_angle,pan_max))]) {
     rotating_hub();
     raised_bracket();
     pan_motor_mount_plate();
+    pan_motor_adapter_plate();
+    pan_motor_flange_plate();
+    pan_motor_flange_bolts();
+    pan_motor_standoffs();
+    pan_gearmotor();
+    pan_motor_output_sprocket();
+    pan_drive_chain();
     bolt_on_gussets();
     mast_guide_plates();
     wind_mast();
